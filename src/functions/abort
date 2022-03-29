@@ -1,0 +1,150 @@
+###################################################-*- mode: shell-script -*-###
+# Function "abort"
+
+# NAME
+#
+# abort – Terminates the shell script.
+
+# SYNOPSIS
+#
+# abort [-<N> | -q] [-s <signal>] [-E | -e | -f] [--] [<message-part>…]
+
+# DESCRIPTION
+#
+# Terminates the current shell script after printing the provided
+# message on stderr followed by a stack trace.
+#
+# The shell script is terminated by sending a signal to the shell
+# process of the current (sub)shell and all its parent shells up to
+# the shell whose PID is $$. Signals are sent to parents first. The
+# default signal is HUP. It can be overridden with the "--signal"
+# option.
+#
+# The message parts are printed with zsh's "echo" unless the option
+# "--printf" was provided, in which case zsh's "printf" is used. The
+# message parts are passed as is to "echo" or "printf". They may
+# include options, in which case it may be necessary to use the "--"
+# option to distinguish them from options to the "abort" function.
+#
+# If no message parts are provided, the message defaults to "Abort",
+# unless the "--" option was provided, in which case no message is
+# printed.
+
+# OPTIONS
+#
+# -<N>
+#
+#   Skip the top N stack elements when printing the stack trace. This
+#   can be useful to report an error in a calling function.
+#
+# -q
+# --quiet
+#
+#   Don't print the stack trace.
+#
+# -s <signal>
+# --signal <signal>
+#
+#   Specify the signal to send to the shell process(es). The signal
+#   can be specified by name or number. The default signal is HUP.
+#   Note that some signals may be ignored by the shell processes or
+#   may not lead to their termination.
+#
+# -E
+# -e
+#
+#   Pass the option -E or -e to zsh's "echo" when printing the message
+#   parts.
+#
+# -f
+# --printf
+#
+#   Print the message parts with zsh's "printf". Any -E or -e options
+#   are ignored.
+#
+# --
+#
+#   Signal the end of options. Any arguments after "--" are treated as
+#   message parts.
+
+function abort() {
+    local skip_count=0;
+    local print_stack_trace=true;
+    local signal=HUP;
+    local echo_args=();
+    local use_printf=false;
+    local message_parts=("Abort");
+
+    # Parse the options.
+    local number="<->";
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -${~number} )
+                local skip_max=$#funcstack;
+                local valid_range="<0-$skip_max>";
+                [[ ${1#-} = ${~valid_range} ]] || \
+                    usage "Valid skip count range from 0 to $skip_max, found ${(qqq)1#-}.";
+                skip_count=${1#-}; shift 1;
+                ;;
+            -q | --quiet )
+                print_stack_trace=false; shift 1;
+                ;;
+            -s | --signal )
+                [[ $# -ge 2 ]] || usage "Option $1 requires an argument.";
+                [[ $2 = <1-31> || " $(kill -l) " = *" ${2:gs/ /_} "* ]] || \
+                    usage "Option $1 requires a valid signal name or number, found ${(qqq)2}.";
+                signal=$2; shift 2;
+                ;;
+            -E | -e )
+                echo_args+=($1); shift 1;
+                ;;
+            -f | --printf )
+                use_printf=true; shift 1;
+                ;;
+            -- )
+                shift 1;
+                message_parts=("$@"); shift $#;
+                ;;
+            -* )
+                usage "Unrecognised option: ${(qqq)1}";
+                ;;
+            * )
+                message_parts=("$@"); shift $#;
+                ;;
+        esac;
+    done;
+
+    # Print the message.
+    if [[ $#message_parts -gt 0 ]]; then
+        { $use_printf && printf "$message_parts[@]" || echo $echo_args "$message_parts[@]" } >&2;
+    fi;
+
+    # Print the stack trace.
+    if $print_stack_trace && [[ $skip_count -lt $#funcstack ]]; then
+        local i;
+        for i in {$((1 + $skip_count))..$#funcstack}; do
+            echo -E - "at $funcfiletrace[$i]($funcstack[$i])" >&2;
+        done;
+    fi;
+
+    # Terminate the current shell and any parent shells.
+    #
+    # Sending the HUP signal to a shell immedialely kills it without
+    # printing any further messages. Any commands following the kill
+    # command are NOT executed. However, local function EXIT traps are
+    # run but not global EXIT traps. Sending the ABRT or TERM signals
+    # have the same effect but for them zsh prints an error message.
+    # The shell exits with the status 1 for signal HUP and with the
+    # statuses 134 and 143 for the signals ABRT and TERM.
+    function kill-shell-rec() {
+        local -i pid=$1;
+        # May occur if kill is called twice on the same shell and the
+        # parent was already killed.
+        [[ $pid -eq 1 ]] && return;
+        [[ $pid -ne $$ ]] && kill-shell-rec $(ps -o ppid= $pid);
+        kill -$signal $pid;
+    }
+    kill-shell-rec $(exec sh -c 'echo $PPID')
+}
+
+################################################################################

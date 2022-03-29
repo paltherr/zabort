@@ -1,0 +1,75 @@
+###################################################-*- mode: shell-script -*-###
+# Function "usage"
+
+# NAME
+#
+# usage – Prints a usage error and terminates the shell script.
+
+# SYNOPSIS
+#
+# usage [-<N>] [--] <error-message>
+
+# DESCRIPTION
+#
+# Prints the provided error message on stderr preceded by the misused
+# command and followed by the stack trace up to the misused command
+# and terminates the current shell script. Unless a different command
+# was specified with the "-<N>" option, the misused command is the
+# function that called "usage". If "usage" was called directly from
+# the toplevel, the misused command is the current script.
+#
+# The shell script is terminated by sending a "HUP" signal to the
+# shell process(es). See function "abort" for more details.
+
+# OPTIONS
+#
+# -<N>
+#
+#   Specify which command is the misused command. The value 0 stands
+#   for the function that called "usage"(the default), the value 1 for
+#   the function that called that function, ..., and call stack size
+#   for the current script.
+#
+# --
+#
+#   Signal the end of options. Any arguments after "--" are parsed as
+#   error messages.
+
+function usage() {
+    local misused_command_index=0;
+
+    # Parse the options.
+    local number="<->";
+    while [[ $# -gt 0 ]]; do
+        case $1 in
+            -${~number} )
+                local index_max=$(($#funcstack - 1));
+                local valid_range="<0-$index_max>";
+                [[ ${1#-} = ${~valid_range} ]] || \
+                    usage "Valid command indexes range from 0 to $index_max, found ${(qqq)1#-}.";
+                misused_command_index=${1#-}; shift 1;
+                ;;
+            -- )
+                shift 1; break;
+                ;;
+            -* )
+                usage "Unrecognised option: ${(qqq)1}";
+                ;;
+            * )
+                break;
+                ;;
+        esac;
+    done;
+
+    # Get the error message.
+    [[ $# -gt 0 ]] || usage "An error message is required.";
+    [[ $# -eq 1 ]] || usage "Multiple error messages aren't allowed, found: $(echo ${(qqq)@}).";
+    [[ $1 = *[![:space:]]* ]] || usage "The error message may not be empty.";
+    local error_message=$1; shift 1;
+
+    local skip_count=$((2 + $misused_command_index));
+    local misused_command=${funcstack[$skip_count]:-$ZSH_ARGZERO};
+    abort -$skip_count -- "$misused_command: $error_message";
+}
+
+################################################################################
