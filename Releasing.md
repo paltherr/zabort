@@ -21,8 +21,8 @@ $ git tag -a <VERSION>
 ```
 
 Include the [CHANGELOG.md] notes corresponding to the new version as
-the tag annotation, except the first line should be: `ZAbort <VERSION>
-- YYYY-MM-DD` and any Markdown headings should become plain text,
+the tag annotation, except the first line should be: `ZAbort <VERSION> -
+YYYY-MM-DD` and any Markdown headings should become plain text,
 e.g.:
 
 ```md
