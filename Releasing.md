@@ -4,11 +4,10 @@ These notes reflect the current process.
 
 ## Update CHANGELOG.md
 
-Move the content of the unreleased entry to a new `<VERSION>` entry at
-the top of [CHANGELOG.md], where `<VERSION>` is the new version
-number.
+Move the content of the unreleased entry to a new `<X.Y.Z>` entry at
+the top of [CHANGELOG.md], where `<X.Y.Z>` is the new version number.
 
-Commit the changes in a commit with the message `ZAbort <VERSION>`.
+Commit the changes in a commit with the message `ZAbort <X.Y.Z>`.
 
 [CHANGELOG.md]: https://github.com/paltherr/zabort/blob/main/CHANGELOG.md
 
@@ -17,11 +16,11 @@ Commit the changes in a commit with the message `ZAbort <VERSION>`.
 Create a new annotated tag with:
 
 ```bash
-$ git tag -a <VERSION>
+$ git tag -a v<X.Y.Z>
 ```
 
 Include the [CHANGELOG.md] notes corresponding to the new version as
-the tag annotation, except the first line should be: `ZAbort <VERSION> -
+the tag annotation, except the first line should be: `ZAbort <X.Y.Z> -
 YYYY-MM-DD` and any Markdown headings should become plain text,
 e.g.:
 
@@ -47,7 +46,7 @@ Then visit https://github.com/paltherr/zabort/releases, and:
 
 * Click **Draft a new release**.
 * Select the new version tag.
-* Name the release: `ZAbort <VERSION>`.
+* Name the release: `ZAbort <X.Y.Z>`.
 * Paste the same notes from the version tag annotation as the
   description, except change the first line to read: `Released:
   YYYY-MM-DD`.
