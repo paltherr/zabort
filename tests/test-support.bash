@@ -6,6 +6,7 @@ set -eu
 # Test setup
 
 function setup_file() {
+  bats_require_minimum_version 1.5.0;
   export MESSAGE="a-simple-test-message";
   export UNKNOWN_COMMAND="unknown-command";
   export TEST_FILE=tests/test-runner.zsh;
