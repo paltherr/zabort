@@ -144,7 +144,8 @@ function abort() {
     [[ $pid -ne $$ ]] && kill-shell-rec $(ps -o ppid= $pid);
     kill -$signal $pid;
   }
-  kill-shell-rec $(exec sh -c 'echo $PPID')
+  zmodload zsh/system;
+  kill-shell-rec $sysparams[pid];
 }
 
 ################################################################################
