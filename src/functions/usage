@@ -36,40 +36,40 @@
 #   error messages.
 
 function usage() {
-    local misused_command_index=0;
+  local misused_command_index=0;
 
-    # Parse the options.
-    local number="<->";
-    while [[ $# -gt 0 ]]; do
-        case $1 in
-            -${~number} )
-                local index_max=$(($#funcstack - 1));
-                local valid_range="<0-$index_max>";
-                [[ ${1#-} = ${~valid_range} ]] || \
-                    usage "Valid command indexes range from 0 to $index_max, found ${(qqq)1#-}.";
-                misused_command_index=${1#-}; shift 1;
-                ;;
-            -- )
-                shift 1; break;
-                ;;
-            -* )
-                usage "Unrecognised option: ${(qqq)1}";
-                ;;
-            * )
-                break;
-                ;;
-        esac;
-    done;
+  # Parse the options.
+  local number="<->";
+  while [[ $# -gt 0 ]]; do
+    case $1 in
+      -${~number} )
+        local index_max=$(($#funcstack - 1));
+        local valid_range="<0-$index_max>";
+        [[ ${1#-} = ${~valid_range} ]] ||
+          usage "Valid command indexes range from 0 to $index_max, found ${(qqq)1#-}.";
+        misused_command_index=${1#-}; shift 1;
+        ;;
+      -- )
+        shift 1; break;
+        ;;
+      -* )
+        usage "Unrecognised option: ${(qqq)1}";
+        ;;
+      * )
+        break;
+        ;;
+    esac;
+  done;
 
-    # Get the error message.
-    [[ $# -gt 0 ]] || usage "An error message is required.";
-    [[ $# -eq 1 ]] || usage "Multiple error messages aren't allowed, found: $(echo ${(qqq)@}).";
-    [[ $1 = *[![:space:]]* ]] || usage "The error message may not be empty.";
-    local error_message=$1; shift 1;
+  # Get the error message.
+  [[ $# -gt 0 ]] || usage "An error message is required.";
+  [[ $# -eq 1 ]] || usage "Multiple error messages aren't allowed, found: $(echo ${(qqq)@}).";
+  [[ $1 = *[![:space:]]* ]] || usage "The error message may not be empty.";
+  local error_message=$1; shift 1;
 
-    local skip_count=$((2 + $misused_command_index));
-    local misused_command=${funcstack[$skip_count]:-$ZSH_ARGZERO};
-    abort -$skip_count -- "$misused_command: $error_message";
+  local skip_count=$((2 + $misused_command_index));
+  local misused_command=${funcstack[$skip_count]:-$ZSH_ARGZERO};
+  abort -$skip_count -- "$misused_command: $error_message";
 }
 
 ################################################################################
