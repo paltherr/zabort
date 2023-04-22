@@ -136,16 +136,15 @@ function abort() {
   # have the same effect but for them zsh prints an error message. The
   # shell exits with the status 1 for signal HUP and with the statuses
   # 134 and 143 for the signals ABRT and TERM.
-  function kill-shell-rec() {
-    local -i pid=$1;
-    # May occur if kill is called twice on the same shell and the
-    # parent was already killed.
-    [[ $pid -eq 1 ]] && return;
-    [[ $pid -ne $$ ]] && kill-shell-rec $(ps -o ppid= $pid);
-    kill -$signal $pid;
-  }
+
   zmodload zsh/system;
-  kill-shell-rec $sysparams[pid];
+  local -i pid=$sysparams[pid];
+  local -a pids=();
+  # The check for PID 1 is needed in case a parent shell was killed
+  # and replaced by process 1.
+  for ((; pid != $ && pid != 1; pid=$(ps -o ppid= $pid))) do pids+=$pid; done;
+  ((pid == 1)) || pids+=$pid;
+  kill -$signal $pids;
 }
 
 ################################################################################
