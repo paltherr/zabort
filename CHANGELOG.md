@@ -10,6 +10,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Description of release process in Releasing.md.
 
+### Changed
+
+- Replaced the --signal option with the ZABORT_SIGNAL environment
+  variable.
+
 ## [0.1.0] - 2022-03-29
 
 ### Added

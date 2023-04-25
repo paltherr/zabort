@@ -36,4 +36,9 @@ function ctx_and_lf()  { e; "$@" && true; l; } # @condition
 function ctx_or_rg()   { e; false || "$@"; l; }
 function ctx_or_lf()   { e; "$@" || true; l; } # @condition
 
+if [[ ${@[(I)@@]} -gt 0 ]]; then
+  while [[ $1 != @@ ]]; do eval $1; shift 1; done;
+  shift 1;
+fi;
+
 "$@";

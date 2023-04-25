@@ -82,30 +82,39 @@ function check-abort() {
   expected_message=$MESSAGE;
 
   expected_failure=1
-  check-abort -s HUP $MESSAGE
-  check-abort -s 1 $MESSAGE
-  check-abort --signal HUP $MESSAGE
-  check-abort --signal HuP $MESSAGE
-  check-abort --signal hup $MESSAGE
-  check-abort --signal 1 $MESSAGE
+  env=(ZABORT_SIGNAL=HUP); check-abort $MESSAGE
+  env=(ZABORT_SIGNAL=HuP); check-abort $MESSAGE
+  env=(ZABORT_SIGNAL=hup); check-abort $MESSAGE
+  env=(ZABORT_SIGNAL=1); check-abort $MESSAGE
 
   expected_failure=130
-  check-abort -s INT $MESSAGE
-  check-abort -s 2 $MESSAGE
+  env=(ZABORT_SIGNAL=INT); check-abort $MESSAGE
+  env=(ZABORT_SIGNAL=2); check-abort $MESSAGE
 
   expected_failure=137
-  check-abort --signal KILL $MESSAGE
-  check-abort --signal 9 $MESSAGE
+  env=(ZABORT_SIGNAL=KILL); check-abort $MESSAGE
+  env=(ZABORT_SIGNAL=9); check-abort $MESSAGE
 }
 
 @test "abort: Invalid signal" {
   local signal;
-  for signal in FOO "" EXIT ZERR DEBUG 0 32 -1 1234567890987654321; do
-    expected_message="abort: Option -s requires a valid signal, found: \"$signal\".";
-    check-abort -s "$signal" $MESSAGE;
-    expected_message="abort: Option --signal requires a valid signal, found: \"$signal\".";
-    check-abort --signal "$signal" $MESSAGE;
+  for signal in FOO EXIT ERR ZERR DEBUG 0 32 -1 1234567890987654321; do
+    expected_message=$(
+      echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"$signal\"";
+      echo $MESSAGE);
+    env=("ZABORT_SIGNAL=$signal"); check-abort $MESSAGE;
   done;
+
+  expected_message=$(
+    echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"\"";
+    echo $MESSAGE);
+  env=("ZABORT_SIGNAL=\"\""); check-abort $MESSAGE;
+  env=("ZABORT_SIGNAL=()"); check-abort $MESSAGE;
+
+  expected_message=$(
+    echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"HUP HUP\"";
+    echo $MESSAGE);
+  env=("ZABORT_SIGNAL=(HUP HUP)"); check-abort $MESSAGE;
 }
 
 @test "abort: Invalid options" {

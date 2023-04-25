@@ -7,7 +7,7 @@
 
 # SYNOPSIS
 #
-# abort [-<N> | -q] [-s <signal>] [-E | -e | -f] [--] [<message-part>…]
+# abort [-<N> | -q] [-E | -e | -f] [--] [<message-part>…]
 
 # DESCRIPTION
 #
@@ -17,8 +17,8 @@
 # The shell script is terminated by sending a signal to the shell
 # process of the current (sub)shell and all its parent shells up to
 # the shell whose PID is $$. Signals are sent to parents first. The
-# default signal is HUP. It can be overridden with the "--signal"
-# option.
+# default signal is HUP. It can be overridden with the ZABORT_SIGNAL
+# environment variable.
 #
 # The message parts are printed with zsh's "echo" unless the option
 # "--printf" was provided, in which case zsh's "printf" is used. The
@@ -42,14 +42,6 @@
 #
 #   Don't print the stack trace.
 #
-# -s <signal>
-# --signal <signal>
-#
-#   Specify the signal to send to the shell process(es). The signal
-#   can be specified by name or number. The default signal is HUP.
-#   Note that some signals may be ignored by the shell processes or
-#   may not lead to their termination.
-#
 # -E
 # -e
 #
@@ -67,6 +59,15 @@
 #   Signal the end of options. Any arguments after "--" are treated as
 #   message parts.
 
+# ENVIRONMENT
+#
+# ZABORT_SIGNAL
+#
+#   The signal to send to the shell process(es) to terminate. The
+#   signal can be specified by name or number. Note that some signals
+#   may be ignored by the shell processes or may not terminate them.
+#   Defaults to HUP.
+
 function abort() {
   local skip_count=0;
   local print_stack_trace=true;
@@ -79,6 +80,14 @@ function abort() {
     [[ $1 != <-> ]] || set -- "${signals[$1+1]:-}";
     [[ $1 != -* ]] && kill -l "$1" >/dev/null 2>&1;
   }
+
+  if [[ -v ZABORT_SIGNAL ]]; then
+    if _zabort-is-signal "$ZABORT_SIGNAL"; then
+      signal=$ZABORT_SIGNAL;
+    else
+      echo "$0: ZABORT_SIGNAL contains unrecognized signal: ${(qqq)ZABORT_SIGNAL}" 1>&2;
+    fi;
+  fi;
 
   # Parse the options.
   local number="<->";
@@ -93,13 +102,6 @@ function abort() {
         ;;
       -q | --quiet )
         print_stack_trace=false; shift 1;
-        ;;
-      -s | --signal )
-        [[ $# -ge 2 ]] || usage "Option $1 requires an argument.";
-        # [[ $2 = <1-31> || " $(kill -l) " = *" ${2:gs/ /_} "* ]] ||
-        _zabort-is-signal "$2" ||
-          usage "Option $1 requires a valid signal, found: ${(qqq)2}.";
-        signal=$2; shift 2;
         ;;
       -E | -e )
         echo_args+=($1); shift 1;

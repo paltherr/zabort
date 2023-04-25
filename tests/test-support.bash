@@ -96,7 +96,7 @@ function stack-trace() {
 }
 
 function check() {
-  local command=( "${callers[@]}" "$@" );
+  local command=( "${env[@]}" ${env+@@} "${callers[@]}" "$@" );
   echo "# Testing: $TEST_FILE ${command[@]}";
 
   if [ -z ${expected_failure+x} ]; then
