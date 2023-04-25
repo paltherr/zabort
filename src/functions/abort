@@ -75,6 +75,11 @@ function abort() {
   local use_printf=false;
   local message_parts=("Abort");
 
+  function _zabort-is-signal() {
+    [[ $1 != <-> ]] || set -- "${signals[$1+1]:-}";
+    [[ $1 != -* ]] && kill -l "$1" >/dev/null 2>&1;
+  }
+
   # Parse the options.
   local number="<->";
   while [[ $# -gt 0 ]]; do
@@ -83,7 +88,7 @@ function abort() {
         local skip_max=$#funcstack;
         local valid_range="<0-$skip_max>";
         [[ ${1#-} = ${~valid_range} ]] ||
-          usage "Valid skip count range from 0 to $skip_max, found ${(qqq)1#-}.";
+          usage "Valid skip count range from 0 to $skip_max, found: ${(qqq)1#-}.";
         skip_count=${1#-}; shift 1;
         ;;
       -q | --quiet )
@@ -91,8 +96,9 @@ function abort() {
         ;;
       -s | --signal )
         [[ $# -ge 2 ]] || usage "Option $1 requires an argument.";
-        [[ $2 = <1-31> || " $(kill -l) " = *" ${2:gs/ /_} "* ]] ||
-          usage "Option $1 requires a valid signal name or number, found ${(qqq)2}.";
+        # [[ $2 = <1-31> || " $(kill -l) " = *" ${2:gs/ /_} "* ]] ||
+        _zabort-is-signal "$2" ||
+          usage "Option $1 requires a valid signal, found: ${(qqq)2}.";
         signal=$2; shift 2;
         ;;
       -E | -e )

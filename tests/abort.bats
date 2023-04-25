@@ -63,11 +63,11 @@ function check-abort() {
   check-abort -4 $MESSAGE
 
   expected_stack_trace=$(stack-trace tic tac toe abort);
-  expected_message="abort: Valid skip count range from 0 to 4, found \"5\".";
+  expected_message="abort: Valid skip count range from 0 to 4, found: \"5\".";
   check-abort -5 $MESSAGE
 
   expected_stack_trace=$(stack-trace tic tac toe abort);
-  expected_message="abort: Valid skip count range from 0 to 4, found \"42\".";
+  expected_message="abort: Valid skip count range from 0 to 4, found: \"42\".";
   check-abort -42 $MESSAGE
 }
 
@@ -85,6 +85,8 @@ function check-abort() {
   check-abort -s HUP $MESSAGE
   check-abort -s 1 $MESSAGE
   check-abort --signal HUP $MESSAGE
+  check-abort --signal HuP $MESSAGE
+  check-abort --signal hup $MESSAGE
   check-abort --signal 1 $MESSAGE
 
   expected_failure=130
@@ -94,6 +96,16 @@ function check-abort() {
   expected_failure=137
   check-abort --signal KILL $MESSAGE
   check-abort --signal 9 $MESSAGE
+}
+
+@test "abort: Invalid signal" {
+  local signal;
+  for signal in FOO "" EXIT ZERR DEBUG 0 32 -1 1234567890987654321; do
+    expected_message="abort: Option -s requires a valid signal, found: \"$signal\".";
+    check-abort -s "$signal" $MESSAGE;
+    expected_message="abort: Option --signal requires a valid signal, found: \"$signal\".";
+    check-abort --signal "$signal" $MESSAGE;
+  done;
 }
 
 @test "abort: Invalid options" {
