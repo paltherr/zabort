@@ -10,7 +10,7 @@ function setup_file() {
   export MESSAGE="a-simple-test-message";
   export UNKNOWN_COMMAND="unknown-command";
   export TEST_FILE=tests/test-runner.zsh;
-  export CONTEXTS=$(grep -o 'ctx[_0-9A-Za-z]\+' $TEST_FILE);
+  export CONTEXTS=$(grep -o 'ctx_\w\+' $TEST_FILE);
 
   export TRACE_top=$($TEST_FILE eval echo '$funcfiletrace[1]');
   local f;
