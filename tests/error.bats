@@ -129,15 +129,15 @@ function command-not-found-message() {
     # TODO: Fix zsh to trigger the ZERR trap on undefined variable
     # reads.
     expected_failure=1;
-    expected_message="read-undefinded-variable: undefined: parameter not set";
+    expected_message="error-undefinded-variable: undefined: parameter not set";
     expected_stack_trace="";
-    check read-undefinded-variable;
+    check error-undefinded-variable;
 }
 
 @test "error: Undefined variable in subshell sometimes tiggers abort in parent shell" {
   for context in $CONTEXTS; do
     callees=($context);
-    expected_message="read-undefinded-variable: undefined: parameter not set";
+    expected_message="error-undefinded-variable: undefined: parameter not set";
     if [[ $context = ctx_eval ]]; then
       # The shell prints an error but fails to exit.
       #
@@ -160,7 +160,7 @@ function command-not-found-message() {
       expected_failure=0;
       expected_stack_trace="";
     fi;
-    check read-undefinded-variable;
+    check error-undefinded-variable;
   done;
 }
 

@@ -9,12 +9,12 @@ function banner() { echo "Lvl${(l:2::0:)$(($#funcstack - 2))} $1 $funcstack[3]" 
 function e() { banner "Enter"; }
 function l() { banner "Leave"; }
 
+function error-unknown-command() { unknown; }
+function error-undefinded-variable() { : $undefined; }
+
 function tic() { e; "$@"; l; }
 function tac() { e; "$@"; l; }
 function toe() { e; "$@"; l; }
-
-function exec-unknown-command() { unknown; }
-function read-undefinded-variable() { : $undefined; }
 
 # Flags:
 # - @subshell: the command is executed in a subshell.
