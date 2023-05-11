@@ -95,6 +95,19 @@ function stack-trace() {
   fi;
 }
 
+function assert_status() {
+  local expected="$1";
+  if (( status != expected )); then
+    {
+      local width=8;
+      batslib_print_kv_single $width "expected" "$expected" "actual" "$status";
+      [[ -z "$output" ]] || batslib_print_kv_single_or_multi $width "stdout" "$output";
+      [[ -z "$stderr" ]] || batslib_print_kv_single_or_multi $width "stderr" "$stderr";
+    } |
+      batslib_decorate "exit status differs" | fail;
+  fi;
+}
+
 function check() {
   local command=("${prelude[@]/#/^}");
   local callee;
@@ -131,19 +144,11 @@ function check() {
   fi;
 
   run --separate-stderr $TEST_FILE "${command[@]}";
-  if [ $expected_failure -eq 0 ]; then
-    assert_success;
-  else
-    assert_failure $expected_failure;
-  fi;
+  assert_status $expected_failure;
   assert_output "";
 
   run $TEST_FILE "${command[@]}";
-  if [ $expected_failure -eq 0 ]; then
-    assert_success;
-  else
-    assert_failure $expected_failure;
-  fi;
+  assert_status $expected_failure;
   assert_output - <<< $(
     {
       [ -z "$expected_enter_trace" ] || echo "$expected_enter_trace";
