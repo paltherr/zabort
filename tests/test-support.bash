@@ -96,8 +96,14 @@ function stack-trace() {
 }
 
 function check() {
-  local command=( "${prelude[@]/#/^}" "${callees[@]}" "$@" );
-  echo "# Testing: $TEST_FILE ${command[@]}";
+  local command=("${prelude[@]/#/^}");
+  local callee;
+  for callee in "${callees[@]}"; do
+    command+=("$callee");
+    [[ ! -v "${callee}_prelude" ]] || eval "command+=(\"\${${callee}_prelude[@]/#/^}\")";
+  done;
+  command+=("$@");
+  echo "# Testing: $TEST_FILE ${command[@]@Q}";
 
   if [ -z ${expected_failure+x} ]; then
     local expected_failure=1;
