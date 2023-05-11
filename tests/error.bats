@@ -11,9 +11,9 @@ function unexpected-error-message() {
 }
 
 function command-not-found-message() {
-  local caller=${callers[$((${#callers[@]} - 1))]};
-  [[ $caller != ctx_eval ]] || caller="(eval):1";
-  echo "$caller: command not found: $UNKNOWN_COMMAND";
+  local callee=${callees[$((${#callees[@]} - 1))]};
+  [[ $callee != ctx_eval ]] || callee="(eval):1";
+  echo "$callee: command not found: $UNKNOWN_COMMAND";
 }
 
 @test "error: Builtin false triggers abort" {
@@ -39,7 +39,7 @@ function command-not-found-message() {
 @test "error: Abort is triggered in all non-condition contexts" {
   for context in $CONTEXTS; do
     if ! context_command_is_condition $context; then
-      callers=($context);
+      callees=($context);
 
       expected_message=$(unexpected-error-message 1);
       check false;
@@ -62,7 +62,7 @@ function command-not-found-message() {
   for error in "false" "grep foo /dev/null"; do
     for context in $CONTEXTS; do
       if context_command_is_condition $context; then
-        callers=($context);
+        callees=($context);
         check $error;
       fi;
     done;
@@ -74,7 +74,7 @@ function command-not-found-message() {
   for context1 in $CONTEXTS; do
     for context2 in $CONTEXTS; do
       if ! (context_command_is_condition $context1 || context_command_is_condition $context2); then
-        callers=($context1 $context2);
+        callees=($context1 $context2);
         check false;
       fi;
     done;
@@ -87,7 +87,7 @@ function command-not-found-message() {
   for context1 in $CONTEXTS; do
     for context2 in $CONTEXTS; do
       if context_command_is_condition $context1 || context_command_is_condition $context2; then
-        callers=($context1 $context2);
+        callees=($context1 $context2);
         check false;
       fi;
     done;
@@ -102,7 +102,7 @@ function command-not-found-message() {
 
 @test "error: Builtin exit in subshell sometimes triggers abort in parent shell" {
   for context in $CONTEXTS; do
-    callers=($context);
+    callees=($context);
     if ! context_starts_subshell $context; then
       # The shell exits with the specified status.
       expected_failure=42;
@@ -136,7 +136,7 @@ function command-not-found-message() {
 
 @test "error: Undefined variable in subshell sometimes tiggers abort in parent shell" {
   for context in $CONTEXTS; do
-    callers=($context);
+    callees=($context);
     expected_message="read-undefinded-variable: undefined: parameter not set";
     if [[ $context = ctx_eval ]]; then
       # The shell prints an error but fails to exit.

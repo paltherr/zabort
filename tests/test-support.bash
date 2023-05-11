@@ -22,7 +22,7 @@ function setup_file() {
 function setup() {
   load '/usr/local/lib/bats-support/load.bash';
   load '/usr/local/lib/bats-assert/load.bash';
-  callers=(tic tac toe);
+  callees=(tic tac toe);
 }
 
 ################################################################################
@@ -96,7 +96,7 @@ function stack-trace() {
 }
 
 function check() {
-  local command=( "${env[@]}" ${env+@@} "${callers[@]}" "$@" );
+  local command=( "${env[@]}" ${env+@@} "${callees[@]}" "$@" );
   echo "# Testing: $TEST_FILE ${command[@]}";
 
   if [ -z ${expected_failure+x} ]; then
@@ -104,12 +104,12 @@ function check() {
   fi;
 
   if [ -z ${expected_enter_trace+x} ]; then
-    local expected_enter_trace=$(enter-trace ${callers[@]});
+    local expected_enter_trace=$(enter-trace ${callees[@]});
   fi;
 
   if [ -z ${expected_leave_trace+x} ]; then
     if [ $expected_failure -eq 0 ]; then
-      local expected_leave_trace=$(leave-trace ${callers[@]});
+      local expected_leave_trace=$(leave-trace ${callees[@]});
     else
       local expected_leave_trace="";
     fi;
@@ -117,9 +117,9 @@ function check() {
 
   if [ -z ${expected_stack_trace+x} ]; then
     case $BATS_TEST_NAME in
-      test_abort-* ) local expected_stack_trace=$(stack-trace ${callers[@]} abort);;
-      test_usage-* ) local expected_stack_trace=$(stack-trace ${callers[@]});;
-      test_error-* ) local expected_stack_trace=$(stack-trace ${callers[@]} abort);;
+      test_abort-* ) local expected_stack_trace=$(stack-trace ${callees[@]} abort);;
+      test_usage-* ) local expected_stack_trace=$(stack-trace ${callees[@]});;
+      test_error-* ) local expected_stack_trace=$(stack-trace ${callees[@]} abort);;
       *            ) echo "Unrecognised test: $BATS_TEST_NAME" >&2; exit 1;;
     esac
   fi;

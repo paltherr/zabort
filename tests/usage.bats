@@ -15,7 +15,7 @@ function check-usage() {
 }
 
 @test "usage: Top-level call" {
-  callers=();
+  callees=();
   expected_message="$TEST_FILE: $MESSAGE";
   check-usage $MESSAGE;
 }

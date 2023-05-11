@@ -130,7 +130,7 @@ function check-abort() {
 @test "abort: Alternate contexts" {
   expected_message=$MESSAGE;
   for context in $CONTEXTS; do
-    callers=($context);
+    callees=($context);
     check-abort $MESSAGE;
   done;
 }
