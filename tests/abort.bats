@@ -81,17 +81,17 @@ function check-abort() {
 @test "abort: Explicit signal" {
   expected_message=$MESSAGE;
 
-  expected_failure=1
+  expected_status=1
   prelude='ZABORT_SIGNAL=HUP'; check-abort $MESSAGE
   prelude='ZABORT_SIGNAL=HuP'; check-abort $MESSAGE
   prelude='ZABORT_SIGNAL=hup'; check-abort $MESSAGE
   prelude='ZABORT_SIGNAL=1'; check-abort $MESSAGE
 
-  expected_failure=130
+  expected_status=130
   prelude='ZABORT_SIGNAL=INT'; check-abort $MESSAGE
   prelude='ZABORT_SIGNAL=2'; check-abort $MESSAGE
 
-  expected_failure=137
+  expected_status=137
   prelude='ZABORT_SIGNAL=KILL'; check-abort $MESSAGE
   prelude='ZABORT_SIGNAL=9'; check-abort $MESSAGE
 }

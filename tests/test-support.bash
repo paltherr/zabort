@@ -118,8 +118,8 @@ function check() {
   command+=("$@");
   echo "# Testing: $TEST_FILE ${command[@]@Q}";
 
-  if [ -z ${expected_failure+x} ]; then
-    local expected_failure=1;
+  if [ -z ${expected_status+x} ]; then
+    local expected_status=1;
   fi;
 
   if [ -z ${expected_enter_trace+x} ]; then
@@ -127,7 +127,7 @@ function check() {
   fi;
 
   if [ -z ${expected_leave_trace+x} ]; then
-    if [ $expected_failure -eq 0 ]; then
+    if [ $expected_status -eq 0 ]; then
       local expected_leave_trace=$(leave-trace ${callees[@]});
     else
       local expected_leave_trace="";
@@ -144,11 +144,11 @@ function check() {
   fi;
 
   run --separate-stderr $TEST_FILE "${command[@]}";
-  assert_status $expected_failure;
+  assert_status $expected_status;
   assert_output "";
 
   run $TEST_FILE "${command[@]}";
-  assert_status $expected_failure;
+  assert_status $expected_status;
   assert_output - <<< $(
     {
       [ -z "$expected_enter_trace" ] || echo "$expected_enter_trace";

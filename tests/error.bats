@@ -57,7 +57,7 @@ function command-not-found-message() {
 }
 
 @test "error: Abort isn't triggered in any condition contexts" {
-  expected_failure=0;
+  expected_status=0;
   expected_stack_trace="";
   for error in "false" "grep foo /dev/null"; do
     for context in $CONTEXTS; do
@@ -82,7 +82,7 @@ function command-not-found-message() {
 }
 
 @test "error: Abort isn't ignored in any condition context combinations" {
-  expected_failure=0;
+  expected_status=0;
   expected_stack_trace="";
   for context1 in $CONTEXTS; do
     for context2 in $CONTEXTS; do
@@ -95,7 +95,7 @@ function command-not-found-message() {
 }
 
 @test "error: Builtin exit doesn't tigger abort" {
-  expected_failure=42;
+  expected_status=42;
   expected_stack_trace="";
   check exit 42;
 }
@@ -105,19 +105,19 @@ function command-not-found-message() {
     callees=($context);
     if ! context_starts_subshell $context; then
       # The shell exits with the specified status.
-      expected_failure=42;
+      expected_status=42;
       unset expected_message;
       expected_stack_trace="";
     elif ! context_status_is_ignored $context; then
       # The parent shell triggers abort.
-      expected_failure=1;
+      expected_status=1;
       expected_message=$(unexpected-error-message 42);
       unset expected_stack_trace;
     else
       # The parent shell ignores the error.
       #
       # TODO: Fix zsh to always trigger abort when a subshell fails.
-      expected_failure=0;
+      expected_status=0;
       unset expected_message;
       expected_stack_trace="";
     fi;
@@ -128,7 +128,7 @@ function command-not-found-message() {
 @test "error: Undefined variable doesn't tigger abort" {
     # TODO: Fix zsh to trigger the ZERR trap on undefined variable
     # reads.
-    expected_failure=1;
+    expected_status=1;
     expected_message="error-undefinded-variable: undefined: parameter not set";
     expected_stack_trace="";
     check error-undefinded-variable;
@@ -142,22 +142,22 @@ function command-not-found-message() {
       # The shell prints an error but fails to exit.
       #
       # TODO: Fix zsh to always exit on undefined variable reads.
-      expected_failure=0;
+      expected_status=0;
       expected_stack_trace="";
     elif ! context_starts_subshell $context; then
       # The shell exits with status 1.
-      expected_failure=1;
+      expected_status=1;
       expected_stack_trace="";
     elif ! context_status_is_ignored $context; then
       # The parent shell triggers abort.
-      expected_failure=1;
+      expected_status=1;
       expected_message+=$(echo; unexpected-error-message 1);
       unset expected_stack_trace;
     else
       # The parent shell ignores the error.
       #
       # TODO: Fix zsh to always trigger abort when a subshell fails.
-      expected_failure=0;
+      expected_status=0;
       expected_stack_trace="";
     fi;
     check error-undefinded-variable;
