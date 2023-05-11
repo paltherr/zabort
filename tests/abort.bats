@@ -82,18 +82,18 @@ function check-abort() {
   expected_message=$MESSAGE;
 
   expected_failure=1
-  env=(ZABORT_SIGNAL=HUP); check-abort $MESSAGE
-  env=(ZABORT_SIGNAL=HuP); check-abort $MESSAGE
-  env=(ZABORT_SIGNAL=hup); check-abort $MESSAGE
-  env=(ZABORT_SIGNAL=1); check-abort $MESSAGE
+  prelude='ZABORT_SIGNAL=HUP'; check-abort $MESSAGE
+  prelude='ZABORT_SIGNAL=HuP'; check-abort $MESSAGE
+  prelude='ZABORT_SIGNAL=hup'; check-abort $MESSAGE
+  prelude='ZABORT_SIGNAL=1'; check-abort $MESSAGE
 
   expected_failure=130
-  env=(ZABORT_SIGNAL=INT); check-abort $MESSAGE
-  env=(ZABORT_SIGNAL=2); check-abort $MESSAGE
+  prelude='ZABORT_SIGNAL=INT'; check-abort $MESSAGE
+  prelude='ZABORT_SIGNAL=2'; check-abort $MESSAGE
 
   expected_failure=137
-  env=(ZABORT_SIGNAL=KILL); check-abort $MESSAGE
-  env=(ZABORT_SIGNAL=9); check-abort $MESSAGE
+  prelude='ZABORT_SIGNAL=KILL'; check-abort $MESSAGE
+  prelude='ZABORT_SIGNAL=9'; check-abort $MESSAGE
 }
 
 @test "abort: Invalid signal" {
@@ -102,19 +102,19 @@ function check-abort() {
     expected_message=$(
       echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"$signal\"";
       echo $MESSAGE);
-    env=("ZABORT_SIGNAL=$signal"); check-abort $MESSAGE;
+    prelude='ZABORT_SIGNAL='$signal; check-abort $MESSAGE;
   done;
 
   expected_message=$(
     echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"\"";
     echo $MESSAGE);
-  env=("ZABORT_SIGNAL=\"\""); check-abort $MESSAGE;
-  env=("ZABORT_SIGNAL=()"); check-abort $MESSAGE;
+  prelude='ZABORT_SIGNAL=""'; check-abort $MESSAGE;
+  prelude='ZABORT_SIGNAL=()'; check-abort $MESSAGE;
 
   expected_message=$(
     echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"HUP HUP\"";
     echo $MESSAGE);
-  env=("ZABORT_SIGNAL=(HUP HUP)"); check-abort $MESSAGE;
+  prelude='ZABORT_SIGNAL=(HUP HUP)'; check-abort $MESSAGE;
 }
 
 @test "abort: Invalid options" {

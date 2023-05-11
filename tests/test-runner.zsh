@@ -12,6 +12,8 @@ function l() { banner "Leave"; }
 function error-unknown-command() { unknown; }
 function error-undefinded-variable() { : $undefined; }
 
+alias process-args='while [[ ${1:-} = ^* ]]; do eval ${1#^}; shift 1; done; "$@"';
+
 function tic() { e; "$@"; l; }
 function tac() { e; "$@"; l; }
 function toe() { e; "$@"; l; }
@@ -36,9 +38,4 @@ function ctx_and_lf()  { e; "$@" && true; l; } # @condition
 function ctx_or_rg()   { e; false || "$@"; l; }
 function ctx_or_lf()   { e; "$@" || true; l; } # @condition
 
-if [[ ${@[(I)@@]} -gt 0 ]]; then
-  while [[ $1 != @@ ]]; do eval $1; shift 1; done;
-  shift 1;
-fi;
-
-"$@";
+process-args;
