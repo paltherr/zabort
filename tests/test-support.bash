@@ -137,37 +137,26 @@ function check() {
   command+=("$@");
   echo "# Testing: $TEST_FILE ${command[@]@Q}";
 
-  if [ -z ${expected_status+x} ]; then
-    local expected_status=1;
-  fi;
+  [[ -v expected_status ]] || local expected_status=1;
 
-  if [ -z ${expected_enter_trace+x} ]; then
-    local expected_enter_trace=$(enter-trace ${callees[@]});
-  fi;
+  [[ -v expected_enter_trace ]] || local expected_enter_trace=$(enter-trace ${callees[@]});
+  [[ -v expected_leave_trace ]] || local expected_leave_trace=$(
+      [[ $expected_status -ne 0 ]] || leave-trace ${callees[@]});
 
-  if [ -z ${expected_leave_trace+x} ]; then
-    if [ $expected_status -eq 0 ]; then
-      local expected_leave_trace=$(leave-trace ${callees[@]});
-    else
-      local expected_leave_trace="";
-    fi;
-  fi;
-
-  if [ -z ${expected_stack_trace+x} ]; then
-    case $BATS_TEST_NAME in
-      test_abort-* ) local expected_stack_trace=$(stack-trace ${callees[@]} abort);;
-      test_usage-* ) local expected_stack_trace=$(stack-trace ${callees[@]});;
-      test_error-* ) local expected_stack_trace=$(stack-trace ${callees[@]} abort);;
-      *            ) echo "Unrecognised test: $BATS_TEST_NAME" >&2; exit 1;;
-    esac
-  fi;
+  [[ -v expected_stack_trace ]] || local expected_stack_trace=$(
+      case $BATS_TEST_NAME in
+        test_abort-* ) stack-trace ${callees[@]} abort;;
+        test_usage-* ) stack-trace ${callees[@]};;
+        test_error-* ) stack-trace ${callees[@]} abort;;
+        *            ) echo "Unrecognised test: $BATS_TEST_NAME" >&2; kill $$;;
+      esac);
 
   [[ -v expected_stdout ]] || local expected_stdout="";
   [[ -v expected_stderr ]] || local expected_stderr=$(
-      [ -z "$expected_enter_trace" ] || echo "$expected_enter_trace";
-      [ -z "${expected_message+x}" ] || echo "$expected_message";
-      [ -z "$expected_stack_trace" ] || echo "$expected_stack_trace";
-      [ -z "$expected_leave_trace" ] || echo "$expected_leave_trace");
+      [[ -z "$expected_enter_trace" ]] || echo "$expected_enter_trace";
+      [[ -z "${expected_message+x}" ]] || echo "$expected_message";
+      [[ -z "$expected_stack_trace" ]] || echo "$expected_stack_trace";
+      [[ -z "$expected_leave_trace" ]] || echo "$expected_leave_trace");
 
   run --separate-stderr $TEST_FILE "${command[@]}";
   assert_status $expected_status;
