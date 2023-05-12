@@ -108,6 +108,25 @@ function assert_status() {
   fi;
 }
 
+function assert_separate_outputs() {
+  local expected_stdout="$1" expected_stderr="$2";
+  if [[ "$output" != "$expected_stdout" ]]; then
+    {
+      local width=8;
+      batslib_print_kv_single_or_multi $width "expected" "$expected_stdout" "actual" "$output";
+      [[ -z "$stderr" ]] || batslib_print_kv_single_or_multi $width "stderr" "$stderr";
+    } |
+      batslib_decorate 'stdout differs' | fail;
+  elif [[ "$stderr" != "$expected_stderr" ]]; then
+    {
+      local width=8;
+      batslib_print_kv_single_or_multi $width "expected" "$expected_stderr" "actual" "$stderr";
+      [[ -z "$output" ]] || batslib_print_kv_single_or_multi $width "stdout" "$output";
+    } |
+      batslib_decorate 'stderr differs' | fail;
+  fi;
+}
+
 function check() {
   local command=("${prelude[@]/#/^}");
   local callee;
@@ -143,19 +162,16 @@ function check() {
     esac
   fi;
 
-  run --separate-stderr $TEST_FILE "${command[@]}";
-  assert_status $expected_status;
-  assert_output "";
-
-  run $TEST_FILE "${command[@]}";
-  assert_status $expected_status;
-  assert_output - <<< $(
-    {
+  [[ -v expected_stdout ]] || local expected_stdout="";
+  [[ -v expected_stderr ]] || local expected_stderr=$(
       [ -z "$expected_enter_trace" ] || echo "$expected_enter_trace";
       [ -z "${expected_message+x}" ] || echo "$expected_message";
       [ -z "$expected_stack_trace" ] || echo "$expected_stack_trace";
-      [ -z "$expected_leave_trace" ] || echo "$expected_leave_trace";
-    });
+      [ -z "$expected_leave_trace" ] || echo "$expected_leave_trace");
+
+  run --separate-stderr $TEST_FILE "${command[@]}";
+  assert_status $expected_status;
+  assert_separate_outputs "$expected_stdout" "$expected_stderr";
 }
 
 ################################################################################
