@@ -118,8 +118,6 @@ function command-not-found-message() {
       unset expected_stack_trace;
     else
       # The parent shell ignores the error.
-      #
-      # TODO: Fix zsh to always trigger abort when a subshell fails.
       expected_status=0;
       unset expected_message;
       expected_stack_trace="";
@@ -158,8 +156,6 @@ function command-not-found-message() {
       unset expected_stack_trace;
     else
       # The parent shell ignores the error.
-      #
-      # TODO: Fix zsh to always trigger abort when a subshell fails.
       expected_status=0;
       expected_stack_trace="";
     fi;
