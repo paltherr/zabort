@@ -6,7 +6,9 @@
 # Error handling tests
 
 function check-error() {
-  local expected_stack_trace=${expected_stack_trace-$(stack-trace ${callees[@]} abort)};
+  if ${expected_abort-true}; then
+    local expected_stack_trace=${expected_stack_trace-$(stack-trace ${callees[@]} abort)};
+  fi;
   check "$@";
 }
 
@@ -59,8 +61,7 @@ function command-not-found-message() {
 }
 
 @test "error: Abort isn't triggered in any condition contexts" {
-  expected_status=0;
-  expected_stack_trace="";
+  expected_abort=false;
   for context in $CONTEXTS; do
     context_command_is_condition $context || continue;
     callees=($context);
@@ -82,8 +83,7 @@ function command-not-found-message() {
 }
 
 @test "error: Abort isn't triggered in any condition context combinations" {
-  expected_status=0;
-  expected_stack_trace="";
+  expected_abort=false;
   for context1 in $CONTEXTS; do
     for context2 in $CONTEXTS; do
       context_command_is_condition $context1 || context_command_is_condition $context2 || continue;
@@ -94,8 +94,9 @@ function command-not-found-message() {
 }
 
 @test "error: Builtin exit doesn't tigger abort" {
+  expected_abort=false;
   expected_status=42;
-  expected_stack_trace="";
+  expected_leave_trace="";
   check-error exit 42;
 }
 
@@ -104,16 +105,15 @@ function command-not-found-message() {
     callees=($context);
     if ! context_starts_subshell $context; then
       # The shell exits with the specified status.
+      expected_abort=false;
       expected_status=42;
-      expected_stack_trace="";
+      expected_leave_trace="";
     elif ! context_status_is_ignored $context; then
       # The parent shell triggers abort.
-      expected_status=1;
       expected_message=$(unexpected-error-message 42);
     else
       # The parent shell ignores the error.
-      expected_status=0;
-      expected_stack_trace="";
+      expected_abort=false;
     fi;
     check-error exit 42;
   ) done;
@@ -122,9 +122,10 @@ function command-not-found-message() {
 @test "error: Undefined variable doesn't tigger abort" {
   # TODO: Fix zsh to trigger the ZERR trap on undefined variable
   # reads.
+  expected_abort=false;
   expected_status=1;
   expected_message="error-undefinded-variable: undefined: parameter not set";
-  expected_stack_trace="";
+  expected_leave_trace="";
   check-error error-undefinded-variable;
 }
 
@@ -136,20 +137,18 @@ function command-not-found-message() {
       # The shell prints an error but fails to exit.
       #
       # TODO: Fix zsh to always exit on undefined variable reads.
-      expected_status=0;
-      expected_stack_trace="";
+      expected_abort=false;
     elif ! context_starts_subshell $context; then
       # The shell exits with status 1.
+      expected_abort=false;
       expected_status=1;
-      expected_stack_trace="";
+      expected_leave_trace="";
     elif ! context_status_is_ignored $context; then
       # The parent shell triggers abort.
-      expected_status=1;
       expected_message+=$(echo; unexpected-error-message 1);
     else
       # The parent shell ignores the error.
-      expected_status=0;
-      expected_stack_trace="";
+      expected_abort=false;
     fi;
     check-error error-undefinded-variable;
   ) done;

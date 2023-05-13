@@ -137,17 +137,24 @@ function check() {
   command+=("$@");
   echo "# Testing: $TEST_FILE ${command[@]@Q}";
 
-  local expected_status=${expected_status-1};
-
+  local expected_abort=${expected_abort-true};
   local expected_enter_trace=${expected_enter_trace-$(enter-trace ${callees[@]})};
-  local expected_stack_trace=${expected_stack_trace-$(stack-trace ${callees[@]})};
-  local expected_leave_trace=${expected_leave_trace-$(\
-      [[ $expected_status -ne 0 ]] || leave-trace ${callees[@]})};
+  if $expected_abort; then
+    local expected_message=${expected_message-Abort};
+    local expected_stack_trace=${expected_stack_trace-$(stack-trace ${callees[@]})};
+    local expected_leave_trace=${expected_leave_trace-};
+    local expected_status=${expected_status-1};
+  else
+    local expected_message=${expected_message-};
+    local expected_stack_trace=${expected_stack_trace-};
+    local expected_leave_trace=${expected_leave_trace-$(leave-trace ${callees[@]})};
+    local expected_status=${expected_status-0};
+  fi;
 
   local expected_stdout=${expected_stdout-};
   local expected_stderr=${expected_stderr-$(\
       [[ -z "$expected_enter_trace" ]] || echo "$expected_enter_trace";
-      [[ -z "${expected_message+x}" ]] || echo "$expected_message";
+      [[ -z "$expected_message"     ]] || echo "$expected_message";
       [[ -z "$expected_stack_trace" ]] || echo "$expected_stack_trace";
       [[ -z "$expected_leave_trace" ]] || echo "$expected_leave_trace")};
 
