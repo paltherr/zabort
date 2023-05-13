@@ -81,7 +81,7 @@ function command-not-found-message() {
   done;
 }
 
-@test "error: Abort isn't ignored in any condition context combinations" {
+@test "error: Abort isn't triggered in any condition context combinations" {
   expected_status=0;
   expected_stack_trace="";
   for context1 in $CONTEXTS; do
