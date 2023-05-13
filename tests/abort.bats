@@ -6,6 +6,7 @@
 # Function "abort" tests
 
 function check-abort() {
+  local expected_stack_trace=${expected_stack_trace-$(stack-trace ${callees[@]} abort)};
   check abort "$@";
 }
 

@@ -140,16 +140,9 @@ function check() {
   local expected_status=${expected_status-1};
 
   local expected_enter_trace=${expected_enter_trace-$(enter-trace ${callees[@]})};
+  local expected_stack_trace=${expected_stack_trace-$(stack-trace ${callees[@]})};
   local expected_leave_trace=${expected_leave_trace-$(\
       [[ $expected_status -ne 0 ]] || leave-trace ${callees[@]})};
-
-  local expected_stack_trace=${expected_stack_trace-$(\
-      case $BATS_TEST_NAME in
-        test_abort-* ) stack-trace ${callees[@]} abort;;
-        test_usage-* ) stack-trace ${callees[@]};;
-        test_error-* ) stack-trace ${callees[@]} abort;;
-        *            ) echo "Unrecognised test: $BATS_TEST_NAME" >&2; kill $$;;
-      esac)};
 
   local expected_stdout=${expected_stdout-};
   local expected_stderr=${expected_stderr-$(\
