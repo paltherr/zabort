@@ -137,26 +137,26 @@ function check() {
   command+=("$@");
   echo "# Testing: $TEST_FILE ${command[@]@Q}";
 
-  [[ -v expected_status ]] || local expected_status=1;
+  local expected_status=${expected_status-1};
 
-  [[ -v expected_enter_trace ]] || local expected_enter_trace=$(enter-trace ${callees[@]});
-  [[ -v expected_leave_trace ]] || local expected_leave_trace=$(
-      [[ $expected_status -ne 0 ]] || leave-trace ${callees[@]});
+  local expected_enter_trace=${expected_enter_trace-$(enter-trace ${callees[@]})};
+  local expected_leave_trace=${expected_leave_trace-$(\
+      [[ $expected_status -ne 0 ]] || leave-trace ${callees[@]})};
 
-  [[ -v expected_stack_trace ]] || local expected_stack_trace=$(
+  local expected_stack_trace=${expected_stack_trace-$(\
       case $BATS_TEST_NAME in
         test_abort-* ) stack-trace ${callees[@]} abort;;
         test_usage-* ) stack-trace ${callees[@]};;
         test_error-* ) stack-trace ${callees[@]} abort;;
         *            ) echo "Unrecognised test: $BATS_TEST_NAME" >&2; kill $$;;
-      esac);
+      esac)};
 
-  [[ -v expected_stdout ]] || local expected_stdout="";
-  [[ -v expected_stderr ]] || local expected_stderr=$(
+  local expected_stdout=${expected_stdout-};
+  local expected_stderr=${expected_stderr-$(\
       [[ -z "$expected_enter_trace" ]] || echo "$expected_enter_trace";
       [[ -z "${expected_message+x}" ]] || echo "$expected_message";
       [[ -z "$expected_stack_trace" ]] || echo "$expected_stack_trace";
-      [[ -z "$expected_leave_trace" ]] || echo "$expected_leave_trace");
+      [[ -z "$expected_leave_trace" ]] || echo "$expected_leave_trace")};
 
   run --separate-stderr $TEST_FILE "${command[@]}";
   assert_status $expected_status;
