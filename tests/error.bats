@@ -5,6 +5,10 @@
 ################################################################################
 # Error handling tests
 
+function check-error() {
+  check "$@";
+}
+
 function unexpected-error-message() {
   local exit_status=$1;
   echo "Command unexpectedly exited with the non-zero status $exit_status.";
@@ -18,22 +22,22 @@ function command-not-found-message() {
 
 @test "error: Builtin false triggers abort" {
   expected_message=$(unexpected-error-message 1);
-  check false;
+  check-error false;
 }
 
 @test "error: Builtin return triggers abort" {
   expected_message=$(unexpected-error-message 42);
-  check return 42;
+  check-error return 42;
 }
 
 @test "error: External command triggers abort" {
   expected_message=$(unexpected-error-message 1);
-  check grep foo /dev/null;
+  check-error grep foo /dev/null;
 }
 
 @test "error: Command not found triggers abort" {
   expected_message=$(command-not-found-message; unexpected-error-message 127);
-  check $UNKNOWN_COMMAND;
+  check-error $UNKNOWN_COMMAND;
 }
 
 @test "error: Abort is triggered in all non-condition contexts" {
@@ -42,16 +46,16 @@ function command-not-found-message() {
       callees=($context);
 
       expected_message=$(unexpected-error-message 1);
-      check false;
+      check-error false;
 
       expected_message=$(unexpected-error-message 42);
-      check return 42;
+      check-error return 42;
 
       expected_message=$(unexpected-error-message 1);
-      check grep foo /dev/null;
+      check-error grep foo /dev/null;
 
       expected_message=$(command-not-found-message; unexpected-error-message 127);
-      check $UNKNOWN_COMMAND;
+      check-error $UNKNOWN_COMMAND;
     fi;
   done;
 }
@@ -63,7 +67,7 @@ function command-not-found-message() {
     for context in $CONTEXTS; do
       if context_command_is_condition $context; then
         callees=($context);
-        check $error;
+        check-error $error;
       fi;
     done;
   done;
@@ -75,7 +79,7 @@ function command-not-found-message() {
     for context2 in $CONTEXTS; do
       if ! (context_command_is_condition $context1 || context_command_is_condition $context2); then
         callees=($context1 $context2);
-        check false;
+        check-error false;
       fi;
     done;
   done;
@@ -88,7 +92,7 @@ function command-not-found-message() {
     for context2 in $CONTEXTS; do
       if context_command_is_condition $context1 || context_command_is_condition $context2; then
         callees=($context1 $context2);
-        check false;
+        check-error false;
       fi;
     done;
   done;
@@ -97,7 +101,7 @@ function command-not-found-message() {
 @test "error: Builtin exit doesn't tigger abort" {
   expected_status=42;
   expected_stack_trace="";
-  check exit 42;
+  check-error exit 42;
 }
 
 @test "error: Builtin exit in subshell sometimes triggers abort in parent shell" {
@@ -121,7 +125,7 @@ function command-not-found-message() {
       unset expected_message;
       expected_stack_trace="";
     fi;
-    check exit 42;
+    check-error exit 42;
   done;
 }
 
@@ -131,7 +135,7 @@ function command-not-found-message() {
     expected_status=1;
     expected_message="error-undefinded-variable: undefined: parameter not set";
     expected_stack_trace="";
-    check error-undefinded-variable;
+    check-error error-undefinded-variable;
 }
 
 @test "error: Undefined variable in subshell sometimes tiggers abort in parent shell" {
@@ -160,7 +164,7 @@ function command-not-found-message() {
       expected_status=0;
       expected_stack_trace="";
     fi;
-    check error-undefinded-variable;
+    check-error error-undefinded-variable;
   done;
 }
 
