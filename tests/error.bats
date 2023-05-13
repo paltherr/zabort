@@ -21,6 +21,11 @@ function command-not-found-message() {
   echo "$callee: command not found: $UNKNOWN_COMMAND";
 }
 
+@test "error: External command triggers abort" {
+  expected_message=$(unexpected-error-message 1);
+  check-error grep foo /dev/null;
+}
+
 @test "error: Builtin false triggers abort" {
   expected_message=$(unexpected-error-message 1);
   check-error false;
@@ -29,11 +34,6 @@ function command-not-found-message() {
 @test "error: Builtin return triggers abort" {
   expected_message=$(unexpected-error-message 42);
   check-error return 42;
-}
-
-@test "error: External command triggers abort" {
-  expected_message=$(unexpected-error-message 1);
-  check-error grep foo /dev/null;
 }
 
 @test "error: Command not found triggers abort" {
@@ -47,13 +47,11 @@ function command-not-found-message() {
       callees=($context);
 
       expected_message=$(unexpected-error-message 1);
+      check-error grep foo /dev/null;
       check-error false;
 
       expected_message=$(unexpected-error-message 42);
       check-error return 42;
-
-      expected_message=$(unexpected-error-message 1);
-      check-error grep foo /dev/null;
 
       expected_message=$(command-not-found-message; unexpected-error-message 127);
       check-error $UNKNOWN_COMMAND;
