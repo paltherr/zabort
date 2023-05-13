@@ -43,43 +43,40 @@ function command-not-found-message() {
 
 @test "error: Abort is triggered in all non-condition contexts" {
   for context in $CONTEXTS; do
-    if ! context_command_is_condition $context; then
-      callees=($context);
+    ! context_command_is_condition $context || continue;
+    callees=($context);
 
-      expected_message=$(unexpected-error-message 1);
-      check-error grep foo /dev/null;
-      check-error false;
+    expected_message=$(unexpected-error-message 1);
+    check-error grep foo /dev/null;
+    check-error false;
 
-      expected_message=$(unexpected-error-message 42);
-      check-error return 42;
+    expected_message=$(unexpected-error-message 42);
+    check-error return 42;
 
-      expected_message=$(command-not-found-message; unexpected-error-message 127);
-      check-error $UNKNOWN_COMMAND;
-    fi;
+    expected_message=$(command-not-found-message; unexpected-error-message 127);
+    check-error $UNKNOWN_COMMAND;
   done;
 }
 
 @test "error: Abort isn't triggered in any condition contexts" {
   expected_status=0;
   expected_stack_trace="";
-  for error in "false" "grep foo /dev/null"; do
-    for context in $CONTEXTS; do
-      if context_command_is_condition $context; then
-        callees=($context);
-        check-error $error;
-      fi;
-    done;
+  for context in $CONTEXTS; do
+    context_command_is_condition $context || continue;
+    callees=($context);
+    check-error grep foo /dev/null;
+    check-error false;
   done;
 }
 
 @test "error: Abort is triggered in all non-condition context combinations" {
   expected_message=$(unexpected-error-message 1);
   for context1 in $CONTEXTS; do
+    ! context_command_is_condition $context1 || continue;
     for context2 in $CONTEXTS; do
-      if ! (context_command_is_condition $context1 || context_command_is_condition $context2); then
-        callees=($context1 $context2);
-        check-error false;
-      fi;
+      ! context_command_is_condition $context2 || continue;
+      callees=($context1 $context2);
+      check-error false;
     done;
   done;
 }
@@ -89,10 +86,9 @@ function command-not-found-message() {
   expected_stack_trace="";
   for context1 in $CONTEXTS; do
     for context2 in $CONTEXTS; do
-      if context_command_is_condition $context1 || context_command_is_condition $context2; then
-        callees=($context1 $context2);
-        check-error false;
-      fi;
+      context_command_is_condition $context1 || context_command_is_condition $context2 || continue;
+      callees=($context1 $context2);
+      check-error false;
     done;
   done;
 }
