@@ -96,11 +96,11 @@ function stack-trace() {
 }
 
 function assert_status() {
-  local expected="$1";
-  if (( status != expected )); then
+  local expected_status="$1";
+  if (( status != expected_status )); then
     {
       local width=8;
-      batslib_print_kv_single $width "expected" "$expected" "actual" "$status";
+      batslib_print_kv_single $width "expected" "$expected_status" "actual" "$status";
       [[ -z "$output" ]] || batslib_print_kv_single_or_multi $width "stdout" "$output";
       [[ -z "$stderr" ]] || batslib_print_kv_single_or_multi $width "stderr" "$stderr";
     } |
