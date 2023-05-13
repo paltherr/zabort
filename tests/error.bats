@@ -100,26 +100,23 @@ function command-not-found-message() {
 }
 
 @test "error: Builtin exit in subshell sometimes triggers abort in parent shell" {
-  for context in $CONTEXTS; do
+  for context in $CONTEXTS; do (
     callees=($context);
     if ! context_starts_subshell $context; then
       # The shell exits with the specified status.
       expected_status=42;
-      unset expected_message;
       expected_stack_trace="";
     elif ! context_status_is_ignored $context; then
       # The parent shell triggers abort.
       expected_status=1;
       expected_message=$(unexpected-error-message 42);
-      unset expected_stack_trace;
     else
       # The parent shell ignores the error.
       expected_status=0;
-      unset expected_message;
       expected_stack_trace="";
     fi;
     check-error exit 42;
-  done;
+  ) done;
 }
 
 @test "error: Undefined variable doesn't tigger abort" {
@@ -132,7 +129,7 @@ function command-not-found-message() {
 }
 
 @test "error: Undefined variable in subshell sometimes tiggers abort in parent shell" {
-  for context in $CONTEXTS; do
+  for context in $CONTEXTS; do (
     callees=($context);
     expected_message="error-undefinded-variable: undefined: parameter not set";
     if [[ $context = ctx_eval ]]; then
@@ -149,14 +146,13 @@ function command-not-found-message() {
       # The parent shell triggers abort.
       expected_status=1;
       expected_message+=$(echo; unexpected-error-message 1);
-      unset expected_stack_trace;
     else
       # The parent shell ignores the error.
       expected_status=0;
       expected_stack_trace="";
     fi;
     check-error error-undefinded-variable;
-  done;
+  ) done;
 }
 
 ################################################################################
