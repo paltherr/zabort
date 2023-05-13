@@ -16,9 +16,9 @@ function unexpected-error-message() {
 }
 
 function command-not-found-message() {
-  local callee=${callees[$((${#callees[@]} - 1))]};
-  [[ $callee != ctx_eval ]] || callee="(eval):1";
-  echo "$callee: command not found: $UNKNOWN_COMMAND";
+  local caller=${callees[$((${#callees[@]} - 1))]};
+  [[ $caller != ctx_eval ]] || caller="(eval):1";
+  echo "$caller: command not found: $UNKNOWN_COMMAND";
 }
 
 @test "error: External command triggers abort" {
