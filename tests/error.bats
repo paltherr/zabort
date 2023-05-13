@@ -120,12 +120,12 @@ function command-not-found-message() {
 }
 
 @test "error: Undefined variable doesn't tigger abort" {
-    # TODO: Fix zsh to trigger the ZERR trap on undefined variable
-    # reads.
-    expected_status=1;
-    expected_message="error-undefinded-variable: undefined: parameter not set";
-    expected_stack_trace="";
-    check-error error-undefinded-variable;
+  # TODO: Fix zsh to trigger the ZERR trap on undefined variable
+  # reads.
+  expected_status=1;
+  expected_message="error-undefinded-variable: undefined: parameter not set";
+  expected_stack_trace="";
+  check-error error-undefinded-variable;
 }
 
 @test "error: Undefined variable in subshell sometimes tiggers abort in parent shell" {
