@@ -14,7 +14,7 @@ function setup_file() {
   export CONTEXTS=$(grep -o 'ctx_\w\+' $TEST_FILE);
   export TRACE_top=$($TEST_FILE '^echo $funcfiletrace[1]');
   local f;
-  for f in tic tac toe $CONTEXTS; do
+  for f in f{1..3} $CONTEXTS; do
     export TRACE_$f=$($TEST_FILE '^exec 3>&1' $f '^echo $funcfiletrace[1] 1>&3');
   done;
 }
@@ -22,7 +22,7 @@ function setup_file() {
 function setup() {
   load '/usr/local/lib/bats-support/load.bash';
   load '/usr/local/lib/bats-assert/load.bash';
-  callees=(tic tac toe);
+  callees=(f1 f2 f3);
 }
 
 ################################################################################

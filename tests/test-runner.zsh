@@ -66,9 +66,9 @@ alias process-args='while [[ ${1:-} = ^* ]]; do eval ${1#^}; shift 1; done; "$@"
 # The following functions process their arguments at the top-level of
 # their body. Their purpose is to add variety to call stacks.
 
-function tic() { e; process-args; l; }
-function tac() { e; process-args; l; }
-function toe() { e; process-args; l; }
+function f1() { e; process-args; l; }
+function f2() { e; process-args; l; }
+function f3() { e; process-args; l; }
 
 # The "ctx_*" functions process their arguments in diverse contexts.
 # The "@" annotations, which must be in a comment on the same line as

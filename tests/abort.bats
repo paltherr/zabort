@@ -45,26 +45,24 @@ function check-abort() {
 }
 
 @test "abort: Skip stack elements" {
-  expected_stack_trace=$(stack-trace tic tac toe abort);
+  expected_stack_trace=$(stack-trace f1 f2 f3 abort);
   check-abort -0;
 
-  expected_stack_trace=$(stack-trace tic tac toe);
+  expected_stack_trace=$(stack-trace f1 f2 f3);
   check-abort -1;
 
-  expected_stack_trace=$(stack-trace tic tac);
+  expected_stack_trace=$(stack-trace f1 f2);
   check-abort -2;
 
-  expected_stack_trace=$(stack-trace tic);
+  expected_stack_trace=$(stack-trace f1);
   check-abort -3;
 
-  expected_stack_trace=$(stack-trace);
+  expected_stack_trace="";
   check-abort -4;
 
-  expected_stack_trace=$(stack-trace tic tac toe abort);
+  expected_stack_trace=$(stack-trace f1 f2 f3 abort);
   expected_message="abort: Valid skip count range from 0 to 4, found: \"5\".";
   check-abort -5;
-
-  expected_stack_trace=$(stack-trace tic tac toe abort);
   expected_message="abort: Valid skip count range from 0 to 4, found: \"42\".";
   check-abort -42;
 }
