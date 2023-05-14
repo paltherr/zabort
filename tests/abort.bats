@@ -96,19 +96,19 @@ function check-abort() {
   for signal in FOO EXIT ERR ZERR DEBUG 0 32 -1 1234567890987654321; do
     expected_message=$(
       echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"$signal\"";
-      echo "Abort");
+      echo "$DEFAULT_MESSAGE");
     prelude='ZABORT_SIGNAL='$signal check-abort;
   done;
 
   expected_message=$(
     echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"\"";
-    echo "Abort");
+    echo "$DEFAULT_MESSAGE");
   prelude='ZABORT_SIGNAL=""' check-abort;
   prelude='ZABORT_SIGNAL=()' check-abort;
 
   expected_message=$(
     echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"HUP HUP\"";
-    echo "Abort");
+    echo "$DEFAULT_MESSAGE");
   prelude='ZABORT_SIGNAL=(HUP HUP)' check-abort;
 }
 

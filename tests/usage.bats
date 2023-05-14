@@ -10,40 +10,40 @@ function check-usage() {
 }
 
 @test "usage: Single argument" {
-  expected_message="toe: $MESSAGE";
-  check-usage $MESSAGE;
+  expected_message="toe: $TEST_MESSAGE";
+  check-usage $TEST_MESSAGE;
 }
 
 @test "usage: Top-level call" {
   callees=();
-  expected_message="$TEST_FILE: $MESSAGE";
-  check-usage $MESSAGE;
+  expected_message="$TEST_FILE: $TEST_MESSAGE";
+  check-usage $TEST_MESSAGE;
 }
 
 @test "usage: Explicit misused command" {
-  expected_message="toe: $MESSAGE";
+  expected_message="toe: $TEST_MESSAGE";
   expected_stack_trace=$(stack-trace tic tac toe);
-  check-usage -0 $MESSAGE;
+  check-usage -0 $TEST_MESSAGE;
 
-  expected_message="tac: $MESSAGE";
+  expected_message="tac: $TEST_MESSAGE";
   expected_stack_trace=$(stack-trace tic tac);
-  check-usage -1 $MESSAGE;
+  check-usage -1 $TEST_MESSAGE;
 
-  expected_message="tic: $MESSAGE";
+  expected_message="tic: $TEST_MESSAGE";
   expected_stack_trace=$(stack-trace tic);
-  check-usage -2 $MESSAGE;
+  check-usage -2 $TEST_MESSAGE;
 
-  expected_message="$TEST_FILE: $MESSAGE";
+  expected_message="$TEST_FILE: $TEST_MESSAGE";
   expected_stack_trace=$(stack-trace);
-  check-usage -3 $MESSAGE;
+  check-usage -3 $TEST_MESSAGE;
 
   expected_message="usage: Valid command indexes range from 0 to 3, found \"4\".";
   expected_stack_trace=$(stack-trace tic tac toe usage);
-  check-usage -4 $MESSAGE;
+  check-usage -4 $TEST_MESSAGE;
 
   expected_message="usage: Valid command indexes range from 0 to 3, found \"42\".";
   expected_stack_trace=$(stack-trace tic tac toe usage);
-  check-usage -42 $MESSAGE;
+  check-usage -42 $TEST_MESSAGE;
 }
 
 @test "usage: Miscellaneous argument combinations" {
@@ -62,10 +62,10 @@ function check-usage() {
   expected_stack_trace=$(stack-trace tic tac toe usage);
 
   expected_message="usage: Unrecognised option: \"-x\"";
-  check-usage -x $MESSAGE;
+  check-usage -x $TEST_MESSAGE;
 
   expected_message="usage: Unrecognised option: \"--invalid-option\"";
-  check-usage --invalid-option $MESSAGE;
+  check-usage --invalid-option $TEST_MESSAGE;
 }
 
 @test "usage: Invalid messages" {

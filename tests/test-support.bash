@@ -7,7 +7,8 @@ set -eu;
 
 function setup_file() {
   bats_require_minimum_version 1.5.0;
-  export MESSAGE="a-simple-test-message";
+  export DEFAULT_MESSAGE="Abort";
+  export TEST_MESSAGE="a-simple-test-message";
   export UNKNOWN_COMMAND="unknown-command";
   export TEST_FILE=tests/test-runner.zsh;
   export CONTEXTS=$(grep -o 'ctx_\w\+' $TEST_FILE);
@@ -140,7 +141,7 @@ function check() {
   local expected_abort=${expected_abort-true};
   local expected_enter_trace=${expected_enter_trace-$(enter-trace ${callees[@]})};
   if $expected_abort; then
-    local expected_message=${expected_message-Abort};
+    local expected_message=${expected_message-$DEFAULT_MESSAGE};
     local expected_stack_trace=${expected_stack_trace-$(stack-trace ${callees[@]})};
     local expected_leave_trace=${expected_leave_trace-};
     local expected_status=${expected_status-1};
