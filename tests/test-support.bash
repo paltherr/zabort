@@ -12,11 +12,10 @@ function setup_file() {
   export UNKNOWN_COMMAND="unknown-command";
   export TEST_FILE=tests/test-runner.zsh;
   export CONTEXTS=$(grep -o 'ctx_\w\+' $TEST_FILE);
-
-  export TRACE_top=$($TEST_FILE eval echo '$funcfiletrace[1]');
+  export TRACE_top=$($TEST_FILE '^echo $funcfiletrace[1]');
   local f;
   for f in tic tac toe $CONTEXTS; do
-    export TRACE_$f=$($TEST_FILE eval "exec 3>&1; $f eval echo '\$funcfiletrace[1]' '1>&3'");
+    export TRACE_$f=$($TEST_FILE '^exec 3>&1' $f '^echo $funcfiletrace[1] 1>&3');
   done;
 }
 
