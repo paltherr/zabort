@@ -30,11 +30,11 @@ function check-abort() {
   expected_message="formatted message with placeholders: \"     \"  +42";
   check-abort --printf "formatted message with placeholders: \"%5s\" %+4i\n" "" 42;
 
-  expected_message="message line 1\nmessage line 2";
+  expected_message=$'message line 1\\nmessage line 2';
   check-abort -E "message line 1\nmessage line 2";
   check-abort -- -E "message line 1\nmessage line 2";
 
-  expected_message=$(echo "message line 1"; echo "message line 2");
+  expected_message=$'message line 1\nmessage line 2';
   check-abort "message line 1\nmessage line 2";
   check-abort -E -e "message line 1\nmessage line 2";
   check-abort -- -E -e "message line 1\nmessage line 2";
@@ -92,23 +92,18 @@ function check-abort() {
 }
 
 @test "abort: Invalid signal" {
+  message_pattern=$'abort: ZABORT_SIGNAL contains unrecognized signal: "%s"\n'$DEFAULT_MESSAGE;
   local signal;
   for signal in FOO EXIT ERR ZERR DEBUG 0 32 -1 1234567890987654321; do
-    expected_message=$(
-      echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"$signal\"";
-      echo "$DEFAULT_MESSAGE");
+    printf -v expected_message "$message_pattern" "$signal";
     prelude='ZABORT_SIGNAL='$signal check-abort;
   done;
 
-  expected_message=$(
-    echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"\"";
-    echo "$DEFAULT_MESSAGE");
+  printf -v expected_message "$message_pattern" "";
   prelude='ZABORT_SIGNAL=""' check-abort;
   prelude='ZABORT_SIGNAL=()' check-abort;
 
-  expected_message=$(
-    echo "abort: ZABORT_SIGNAL contains unrecognized signal: \"HUP HUP\"";
-    echo "$DEFAULT_MESSAGE");
+  printf -v expected_message "$message_pattern" "HUP HUP";
   prelude='ZABORT_SIGNAL=(HUP HUP)' check-abort;
 }
 

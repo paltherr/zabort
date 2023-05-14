@@ -145,7 +145,7 @@ function command-not-found-message() {
       expected_leave_trace="";
     elif ! context_status_is_ignored $context; then
       # The parent shell triggers abort.
-      expected_message+=$(echo; unexpected-error-message 1);
+      expected_message+=$'\n'$(unexpected-error-message 1);
     else
       # The parent shell ignores the error.
       expected_abort=false;

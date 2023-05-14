@@ -81,7 +81,7 @@ function check-usage() {
 
   expected_message="usage: The error message may not be empty.";
   check-usage "";
-  check-usage "$(printf " \t\n ")";
+  check-usage $' \t\n ';
 }
 
 ################################################################################
