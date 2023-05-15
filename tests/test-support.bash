@@ -44,55 +44,34 @@ function context_command_is_condition() {
 }
 
 function enter-trace() {
-  function rec() {
-    local lvl=$1; shift 1;
-    local fun=$1; shift 1;
-    printf "Lvl%02i Enter %s\n" $lvl $fun;
-    if [[ $# -gt 0 ]]; then
-      if [[ $fun = ctx_eval ]]; then
-        rec $(($lvl + 2)) "$@";
-      else
-        rec $(($lvl + 1)) "$@";
-      fi;
-    fi;
-  }
-  if [[ $# -gt 0 ]]; then
-    rec 1 "$@";
-  fi;
+  local -a args=(); local -i index=0 level=1;
+  while (($# > 0)); do
+    args[index++]=$level; args[index++]=$1;
+    [[ $1 != ctx_eval ]] || level+=1;
+    level+=1; shift 1;
+  done;
+  ((${#args[@]} == 0)) || printf "Lvl%02i Enter %s\n" "${args[@]}";
 }
 
 function leave-trace() {
-  function rec() {
-    local lvl=$1; shift 1;
-    local fun=$1; shift 1;
-    if [[ $# -gt 0 ]]; then
-      if [[ $fun = ctx_eval ]]; then
-        rec $(($lvl + 2)) "$@";
-      else
-        rec $(($lvl + 1)) "$@";
-      fi;
-    fi;
-    printf "Lvl%02i Leave %s\n" $lvl $fun;
-  }
-  if [[ $# -gt 0 ]]; then
-    rec 1 "$@";
-  fi;
+  local -a args=(); local -i index=2*$# level=1;
+  while (($# > 0)); do
+    args[--index]=$1; args[--index]=$level;
+    [[ $1 != ctx_eval ]] || level+=1;
+    level+=1; shift 1;
+  done;
+  ((${#args[@]} == 0)) || printf "Lvl%02i Leave %s\n" "${args[@]}";
 }
 
 function stack-trace() {
-  function rec() {
-    local ctx=$1; shift 1;
-    local fun=$1; shift 1;
-    [[ $# -gt 0 ]] && rec "$fun" "$@";
-    eval echo "\"at \$TRACE_$ctx($fun)\"";
-    # The builtin "eval" adds an extra stack frame.
-    if [[ $ctx = ctx_eval ]]; then
-      eval echo "\"at \$TRACE_$ctx((eval))\"";
-    fi;
-  }
-  if [[ $# -gt 0 ]]; then
-    rec "top" "$@";
-  fi;
+  local -a args=(); local -i index=2*$# level=1; local caller=top;
+  while (($# > 0)); do
+    local trace=TRACE_$caller;
+    [[ $caller != ctx_eval ]] || args[--index]="${!trace}((eval))";
+    args[--index]="${!trace}($1)";
+    caller=$1; shift 1;
+  done;
+  ((${#args[@]} == 0)) || printf "at %s\n" "${args[@]}";
 }
 
 function assert_status() {
