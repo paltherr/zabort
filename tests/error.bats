@@ -93,16 +93,6 @@ function errmsg-bad-flag() {
   done;
 }
 
-@test "error: Abort isn't triggered in any condition contexts" {
-  expected_abort=false;
-  for context in $CONTEXTS; do
-    context_command_is_condition $context || continue;
-    callees=($context);
-    check-error grep foo /dev/null;
-    check-error false;
-  done;
-}
-
 @test "error: Abort is triggered in all non-condition context combinations" {
   expected_message=$(unexpected-error-message 1);
   for context1 in $CONTEXTS; do
@@ -112,6 +102,15 @@ function errmsg-bad-flag() {
       callees=(f1 $context1 f2 $context2 f3);
       check-error false;
     done;
+  done;
+}
+
+@test "error: Abort isn't triggered in any condition contexts" {
+  expected_abort=false;
+  for context in $CONTEXTS; do
+    context_command_is_condition $context || continue;
+    callees=(f1 f2 $context f3);
+    check-error false;
   done;
 }
 
