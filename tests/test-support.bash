@@ -10,6 +10,7 @@ function setup_file() {
   export DEFAULT_MESSAGE="Abort";
   export TEST_MESSAGE="a-simple-test-message";
   export UNKNOWN_COMMAND="unknown-command";
+  export NON_EXISTENT_FILE="non-existent-file.txt";
   export TEST_FILE=tests/test-runner.zsh;
   export CONTEXTS=$(grep -o 'ctx_\w\+' $TEST_FILE);
   export TRACE_script=$($TEST_FILE '^echo $funcfiletrace[1]');

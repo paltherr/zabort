@@ -12,15 +12,23 @@ function check-error() {
   check "$@";
 }
 
+function prepend-caller() {
+  local message=$1 caller=${2-${callees[-1]}};
+  [[ $caller != ctx_eval ]] || caller="(eval):1";
+  echo "$caller: $message";
+}
+
 function unexpected-error-message() {
   local exit_status=$1;
   echo "Command unexpectedly exited with the non-zero status $exit_status.";
 }
 
-function command-not-found-message() {
-  local caller=${callees[$((${#callees[@]} - 1))]};
-  [[ $caller != ctx_eval ]] || caller="(eval):1";
-  echo "$caller: command not found: $UNKNOWN_COMMAND";
+function errmsg-unknown-command() {
+  prepend-caller "command not found: $UNKNOWN_COMMAND" "$@";
+}
+
+function errmsg-non-existent-file() {
+  prepend-caller "no such file or directory: $NON_EXISTENT_FILE" "$@";
 }
 
 @test "error: External command triggers abort" {
@@ -38,9 +46,19 @@ function command-not-found-message() {
   check-error return 42;
 }
 
-@test "error: Command not found triggers abort" {
-  expected_message=$(command-not-found-message; unexpected-error-message 127);
+@test "error: Unknown command triggers abort" {
+  expected_message=$(errmsg-unknown-command; unexpected-error-message 127);
   check-error $UNKNOWN_COMMAND;
+}
+
+@test "error: Non-existent file triggers abort" {
+  expected_message=$(errmsg-non-existent-file ${callees[-1]}:source; unexpected-error-message 127);
+  check-error source $NON_EXISTENT_FILE;
+
+  prelude='read-file() cat <$1';
+  expected_message=$(errmsg-non-existent-file read-file; unexpected-error-message 1);
+  expected_stack_trace=$(stack-trace ${callees[@]} read-file abort);
+  check-error read-file $NON_EXISTENT_FILE;
 }
 
 @test "error: Abort is triggered in all non-condition contexts" {
@@ -55,8 +73,11 @@ function command-not-found-message() {
     expected_message=$(unexpected-error-message 42);
     check-error return 42;
 
-    expected_message=$(command-not-found-message; unexpected-error-message 127);
+    expected_message=$(errmsg-unknown-command; unexpected-error-message 127);
     check-error $UNKNOWN_COMMAND;
+
+    expected_message=$(errmsg-non-existent-file ${callees[-1]}:source; unexpected-error-message 127);
+    check-error source $NON_EXISTENT_FILE;
   done;
 }
 
