@@ -132,25 +132,26 @@ function errmsg-bad-flag() {
   check-error exit 42;
 }
 
-@test "error: Builtin exit in subshell sometimes triggers abort in parent shell" {
-  for context in $CONTEXTS; do (
+@test "error: Builtin exit triggers abort in parent shells that listen to subshell exit status" {
+  for context in $CONTEXTS; do
+    unset ${!expected_*};
     callees=(f1 f2 $context f3);
     if ! context_starts_subshell $context; then
       # The shell exits with the specified status.
       expected_abort=false;
       expected_status=42;
       expected_leave_trace="";
-    elif ! context_status_is_ignored $context; then
+    elif context_status_is_ignored $context; then
+      # The parent shell ignores the error status.
+      expected_abort=false;
+      expected_leave_trace=$(leave-trace f1 f2 $context);
+    else
       # The parent shell triggers abort.
       expected_stack_trace=$(stack-trace f1 f2 $context abort);
       expected_message=$(unexpected-error-message 42);
-    else
-      # The parent shell ignores the error.
-      expected_abort=false;
-      expected_leave_trace=$(leave-trace f1 f2 $context);
     fi;
     check-error exit 42;
-  ) done;
+  done;
 }
 
 @test "error: Expansion errors trigger shell exit but no abort" {
