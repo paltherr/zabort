@@ -41,12 +41,6 @@ function e() { banner "Enter"; }
 function l() { banner "Leave"; }
 
 ################################################################################
-# Error Functions
-
-function error-unknown-command() { unknown; }
-function error-undefinded-variable() { : $undefined; }
-
-################################################################################
 # Test functions
 
 # The test functions defined below accept the same kind of arguments

@@ -31,6 +31,18 @@ function errmsg-non-existent-file() {
   prepend-caller "no such file or directory: $NON_EXISTENT_FILE" "$@";
 }
 
+function errmsg-undefined-variable() {
+  prepend-caller "$UNDEFINED_VARIABLE: parameter not set" "$@";
+}
+
+function errmsg-bad-substitution() {
+  prepend-caller "bad substitution" "$@";
+}
+
+function errmsg-bad-flag() {
+  prepend-caller "error in flags" "$@";
+}
+
 @test "error: External command triggers abort" {
   expected_message=$(unexpected-error-message 1);
   check-error grep foo /dev/null;
@@ -142,42 +154,58 @@ function errmsg-non-existent-file() {
   ) done;
 }
 
-@test "error: Undefined variable doesn't tigger abort" {
-  # TODO: Fix zsh to trigger the ZERR trap on undefined variable
-  # reads.
+@test "error: Expansion errors trigger shell exit but no abort" {
+  # TODO: Fix zsh to trigger the ZERR trap on expansion errors.
   expected_abort=false;
   expected_status=1;
-  expected_message="error-undefinded-variable: undefined: parameter not set";
   expected_leave_trace="";
-  check-error error-undefinded-variable;
+
+  prelude='undefined-variable() { : ${'$UNDEFINED_VARIABLE'}; }';
+  expected_message="$(errmsg-undefined-variable undefined-variable)";
+  check-error undefined-variable;
+
+  prelude='bad-substitution() { : ${]}; }';
+  expected_message="$(errmsg-bad-substitution bad-substitution)";
+  check-error bad-substitution;
+
+  prelude='bad-flag() { : ${(j)1}; }';
+  expected_message="$(errmsg-bad-flag bad-flag)";
+  check-error bad-flag;
 }
 
-@test "error: Undefined variable in subshell sometimes tiggers abort in parent shell" {
-  for context in $CONTEXTS; do (
-    callees=(f1 f2 $context f3);
-    expected_message="error-undefinded-variable: undefined: parameter not set";
-    if [[ $context = ctx_eval ]]; then
-      # The shell prints an error but fails to exit.
-      #
-      # TODO: Fix zsh to always exit on undefined variable reads.
-      expected_abort=false;
-      expected_leave_trace=$(leave-trace f1 f2 $context);
-    elif ! context_starts_subshell $context; then
-      # The shell exits with status 1.
-      expected_abort=false;
-      expected_status=1;
-      expected_leave_trace="";
-    elif ! context_status_is_ignored $context; then
-      # The parent shell triggers abort.
-      expected_stack_trace=$(stack-trace f1 f2 $context abort);
-      expected_message+=$'\n'$(unexpected-error-message 1);
-    else
-      # The parent shell ignores the error.
-      expected_abort=false;
-      expected_leave_trace=$(leave-trace f1 f2 $context);
-    fi;
-    check-error error-undefinded-variable;
-  ) done;
+@test "error: Expansion errors in eval trigger eval exit but no shell exit nor abort" {
+  # TODO: Fix zsh to exit the shell rather than just the eval when an
+  # expansion error occurs inside an eval.
+  expected_abort=false;
+
+  expected_message="$(errmsg-undefined-variable "(eval):1")";
+  check-error eval : '$'$UNDEFINED_VARIABLE;
+
+  expected_message="$(errmsg-bad-substitution "(eval):1")";
+  check-error eval : '${]}';
+
+  expected_message="$(errmsg-bad-flag "(eval):1")";
+  check-error eval : '${(j)1}';
+
+  callees=(f1 f2 ctx_eval f3);
+  expected_leave_trace=$(leave-trace f1 f2 ctx_eval);
+
+  prelude='undefined-variable() { : ${'$UNDEFINED_VARIABLE'}; }';
+  expected_message="$(errmsg-undefined-variable undefined-variable)";
+  check-error undefined-variable;
+
+  prelude='bad-substitution() { : ${]}; }';
+  expected_message="$(errmsg-bad-substitution bad-substitution)";
+  check-error bad-substitution;
+
+  prelude='bad-flag() { : ${(j)1}; }';
+  expected_message="$(errmsg-bad-flag bad-flag)";
+  check-error bad-flag;
+}
+
+@test "error: Undefined variable in printf tiggers abort" {
+  expected_message="$(errmsg-undefined-variable; unexpected-error-message 1)";
+  check-error printf -v ignored %d $UNDEFINED_VARIABLE;
 }
 
 ################################################################################

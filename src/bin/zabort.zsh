@@ -16,9 +16,6 @@ autoload -Uz usage;
 # if the subshell was started in a context where its exit status is
 # ignored. The trap defined here solves this by explicitly terminating
 # all parent shells.
-#
-# TODO: Bad substitutions don't seem to trigger any error, just a
-# warning on stderr. Same for error in flags.
 
 trap 'abort "Command unexpectedly exited with the non-zero status $?."' ZERR;
 
