@@ -75,7 +75,7 @@ function errmsg-bad-flag() {
 
 @test "error: Abort is triggered in all non-condition contexts" {
   for context in $CONTEXTS; do
-    ! context_command_is_condition $context || continue;
+    ! context-is-condition $context || continue;
     callees=(f1 f2 $context f3);
 
     expected_message=$(unexpected-error-message 1);
@@ -96,9 +96,9 @@ function errmsg-bad-flag() {
 @test "error: Abort is triggered in all non-condition context combinations" {
   expected_message=$(unexpected-error-message 1);
   for context1 in $CONTEXTS; do
-    ! context_command_is_condition $context1 || continue;
+    ! context-is-condition $context1 || continue;
     for context2 in $CONTEXTS; do
-      ! context_command_is_condition $context2 || continue;
+      ! context-is-condition $context2 || continue;
       callees=(f1 $context1 f2 $context2 f3);
       check-error false;
     done;
@@ -108,7 +108,7 @@ function errmsg-bad-flag() {
 @test "error: Abort isn't triggered in any condition contexts" {
   expected_abort=false;
   for context in $CONTEXTS; do
-    context_command_is_condition $context || continue;
+    context-is-condition $context || continue;
     callees=(f1 f2 $context f3);
     check-error false;
   done;
@@ -118,7 +118,7 @@ function errmsg-bad-flag() {
   expected_abort=false;
   for context1 in $CONTEXTS; do
     for context2 in $CONTEXTS; do
-      context_command_is_condition $context1 || context_command_is_condition $context2 || continue;
+      context-is-condition $context1 || context-is-condition $context2 || continue;
       callees=(f1 $context1 f2 $context2 f3);
       check-error false;
     done;
@@ -136,13 +136,13 @@ function errmsg-bad-flag() {
   for context in $CONTEXTS; do
     unset ${!expected_*};
     callees=(f1 f2 $context f3);
-    if ! context_starts_subshell $context; then
+    if ! context-starts-subshell $context; then
       # The shell exits with the specified status.
       expected_abort=false;
       expected_status=42;
       expected_leave_trace="";
-    elif context_status_is_ignored $context; then
-      # The parent shell ignores the error status.
+    elif context-ignores-exit-status $context; then
+      # The parent shell ignores the non-zero exit status.
       expected_abort=false;
       expected_leave_trace=$(leave-trace f1 f2 $context);
     else

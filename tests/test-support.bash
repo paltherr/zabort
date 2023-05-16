@@ -14,6 +14,9 @@ function setup_file() {
   export UNDEFINED_VARIABLE="undefined_variable";
   export TEST_FILE=tests/test-runner.zsh;
   export CONTEXTS=$(grep -o 'ctx_\w\+' $TEST_FILE);
+  export CONTEXTS_AT_SUBSHELL=$(grep -o 'ctx_\w\+.*@subshell' $TEST_FILE | grep -o 'ctx_\w\+');
+  export CONTEXTS_AT_IGNORED=$(grep -o 'ctx_\w\+.*@ignored' $TEST_FILE | grep -o 'ctx_\w\+');
+  export CONTEXTS_AT_CONDITION=$(grep -o 'ctx_\w\+.*@condition' $TEST_FILE | grep -o 'ctx_\w\+');
   export TRACE_script=$($TEST_FILE '^echo $funcfiletrace[1]');
   export TRACE_prelude_function=$($TEST_FILE '^() { echo $funcsourcetrace[1]; }');
   local f;
@@ -31,19 +34,16 @@ function setup() {
 ################################################################################
 # Helper functions
 
-function context_starts_subshell() {
-  local context=$1; shift 1;
-  grep -q "$context.*@subshell" $TEST_FILE;
+function context-starts-subshell() {
+  [[ $CONTEXTS_AT_SUBSHELL = *$1* ]];
 }
 
-function context_status_is_ignored() {
-  local context=$1; shift 1;
-  grep -q "$context.*@ignored" $TEST_FILE;
+function context-ignores-exit-status() {
+  [[ $CONTEXTS_AT_IGNORED = *$1* ]];
 }
 
-function context_command_is_condition() {
-  local context=$1; shift 1;
-  grep -q "$context.*@condition" $TEST_FILE;
+function context-is-condition() {
+  [[ $CONTEXTS_AT_CONDITION = *$1* ]];
 }
 
 function enter-trace() {
