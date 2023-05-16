@@ -12,7 +12,8 @@ function setup_file() {
   export UNKNOWN_COMMAND="unknown-command";
   export TEST_FILE=tests/test-runner.zsh;
   export CONTEXTS=$(grep -o 'ctx_\w\+' $TEST_FILE);
-  export TRACE_top=$($TEST_FILE '^echo $funcfiletrace[1]');
+  export TRACE_script=$($TEST_FILE '^echo $funcfiletrace[1]');
+  export TRACE_prelude_function=$($TEST_FILE '^() { echo $funcsourcetrace[1]; }');
   local f;
   for f in f{1..3} $CONTEXTS; do
     export TRACE_$f=$($TEST_FILE '^exec 3>&1' $f '^echo $funcfiletrace[1] 1>&3');
@@ -64,9 +65,10 @@ function leave-trace() {
 }
 
 function stack-trace() {
-  local -a args=(); local -i index=2*$# level=1; local caller=top;
+  local -a args=(); local -i index=2*$# level=1; local caller=script;
   while (($# > 0)); do
     local trace=TRACE_$caller;
+    [[ -v $trace ]] || trace=TRACE_prelude_function;
     [[ $caller != ctx_eval ]] || args[--index]="${!trace}((eval))";
     args[--index]="${!trace}($1)";
     caller=$1; shift 1;
