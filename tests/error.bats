@@ -46,7 +46,7 @@ function command-not-found-message() {
 @test "error: Abort is triggered in all non-condition contexts" {
   for context in $CONTEXTS; do
     ! context_command_is_condition $context || continue;
-    callees=($context);
+    callees=(f1 f2 $context f3);
 
     expected_message=$(unexpected-error-message 1);
     check-error grep foo /dev/null;
@@ -76,7 +76,7 @@ function command-not-found-message() {
     ! context_command_is_condition $context1 || continue;
     for context2 in $CONTEXTS; do
       ! context_command_is_condition $context2 || continue;
-      callees=($context1 $context2);
+      callees=(f1 $context1 f2 $context2 f3);
       check-error false;
     done;
   done;
@@ -87,7 +87,7 @@ function command-not-found-message() {
   for context1 in $CONTEXTS; do
     for context2 in $CONTEXTS; do
       context_command_is_condition $context1 || context_command_is_condition $context2 || continue;
-      callees=($context1 $context2);
+      callees=(f1 $context1 f2 $context2 f3);
       check-error false;
     done;
   done;
@@ -102,7 +102,7 @@ function command-not-found-message() {
 
 @test "error: Builtin exit in subshell sometimes triggers abort in parent shell" {
   for context in $CONTEXTS; do (
-    callees=($context);
+    callees=(f1 f2 $context f3);
     if ! context_starts_subshell $context; then
       # The shell exits with the specified status.
       expected_abort=false;
@@ -110,10 +110,12 @@ function command-not-found-message() {
       expected_leave_trace="";
     elif ! context_status_is_ignored $context; then
       # The parent shell triggers abort.
+      expected_stack_trace=$(stack-trace f1 f2 $context abort);
       expected_message=$(unexpected-error-message 42);
     else
       # The parent shell ignores the error.
       expected_abort=false;
+      expected_leave_trace=$(leave-trace f1 f2 $context);
     fi;
     check-error exit 42;
   ) done;
@@ -131,13 +133,14 @@ function command-not-found-message() {
 
 @test "error: Undefined variable in subshell sometimes tiggers abort in parent shell" {
   for context in $CONTEXTS; do (
-    callees=($context);
+    callees=(f1 f2 $context f3);
     expected_message="error-undefinded-variable: undefined: parameter not set";
     if [[ $context = ctx_eval ]]; then
       # The shell prints an error but fails to exit.
       #
       # TODO: Fix zsh to always exit on undefined variable reads.
       expected_abort=false;
+      expected_leave_trace=$(leave-trace f1 f2 $context);
     elif ! context_starts_subshell $context; then
       # The shell exits with status 1.
       expected_abort=false;
@@ -145,10 +148,12 @@ function command-not-found-message() {
       expected_leave_trace="";
     elif ! context_status_is_ignored $context; then
       # The parent shell triggers abort.
+      expected_stack_trace=$(stack-trace f1 f2 $context abort);
       expected_message+=$'\n'$(unexpected-error-message 1);
     else
       # The parent shell ignores the error.
       expected_abort=false;
+      expected_leave_trace=$(leave-trace f1 f2 $context);
     fi;
     check-error error-undefinded-variable;
   ) done;
