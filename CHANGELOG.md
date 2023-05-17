@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Replaced the --signal option with the ZABORT_SIGNAL environment
   variable.
 
+- The stack trace printed by the ZERR trap now shows "TRAPZERR"
+  instead of "abort" as the last call.
+
 ## [0.1.0] - 2022-03-29
 
 ### Added

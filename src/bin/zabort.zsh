@@ -17,7 +17,9 @@ autoload -Uz usage;
 # ignored. The trap defined here solves this by explicitly terminating
 # all parent shells.
 
-trap 'abort "Command unexpectedly exited with the non-zero status $?."' ZERR;
+TRAPZERR() {
+  abort -1 "Command unexpectedly exited with the non-zero status $?.";
+}
 
 # TODO: Are there any cleanups, like killing pending jobs/subshells,
 # that should be done in an HUP trap??
