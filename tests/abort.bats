@@ -14,6 +14,15 @@ function check-abort() {
   check-abort;
 }
 
+@test "abort: Alternate contexts" {
+  for context in $CONTEXTS; do
+    callees=($context);
+    check-abort;
+    callees=(f1 f2 $context f3 f4);
+    check-abort;
+  done;
+}
+
 @test "abort: Messages" {
   expected_message="single-word-message";
   check-abort "single-word-message";
@@ -71,6 +80,16 @@ function check-abort() {
   expected_stack_trace="";
   check-abort -q;
   check-abort --quiet;
+}
+
+@test "abort: Invalid options" {
+  expected_message="abort: Unrecognised option: \"-x\"";
+  check-abort -x;
+  check-abort -x "ignored message";
+
+  expected_message="abort: Unrecognised option: \"--invalid\"";
+  check-abort --invalid;
+  check-abort --invalid "ignored message";
 }
 
 @test "abort: Explicit signal" {
@@ -136,25 +155,6 @@ function check-abort() {
   f3_prelude='ZABORT_STOP_PID=42' check-abort;
   f3_prelude='ZABORT_STOP_PID=-42' check-abort;
   f3_prelude='ZABORT_STOP_PID=foobar' check-abort;
-}
-
-@test "abort: Invalid options" {
-  expected_message="abort: Unrecognised option: \"-x\"";
-  check-abort -x;
-  check-abort -x "ignored message";
-
-  expected_message="abort: Unrecognised option: \"--invalid\"";
-  check-abort --invalid;
-  check-abort --invalid "ignored message";
-}
-
-@test "abort: Alternate contexts" {
-  for context in $CONTEXTS; do
-    callees=($context);
-    check-abort;
-    callees=(f1 f2 $context f3 f4);
-    check-abort;
-  done;
 }
 
 ################################################################################
