@@ -152,6 +152,8 @@ function check-abort() {
   for context in $CONTEXTS; do
     callees=($context);
     check-abort;
+    callees=(f1 f2 $context f3 f4);
+    check-abort;
   done;
 }
 
