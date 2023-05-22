@@ -43,27 +43,27 @@ function errmsg-bad-flag() {
   prepend-caller "error in flags" "$@";
 }
 
-@test "error: External command triggers ZERR trap" {
+@test "External command triggers ZERR trap" {
   expected_message=$(unexpected-error-message 1);
   check-error grep foo /dev/null;
 }
 
-@test "error: Builtin false triggers ZERR trap" {
+@test "Builtin false triggers ZERR trap" {
   expected_message=$(unexpected-error-message 1);
   check-error false;
 }
 
-@test "error: Builtin return triggers ZERR trap" {
+@test "Builtin return triggers ZERR trap" {
   expected_message=$(unexpected-error-message 42);
   check-error return 42;
 }
 
-@test "error: Unknown command triggers ZERR trap" {
+@test "Unknown command triggers ZERR trap" {
   expected_message=$(errmsg-unknown-command; unexpected-error-message 127);
   check-error $UNKNOWN_COMMAND;
 }
 
-@test "error: Non-existent file triggers ZERR trap" {
+@test "Non-existent file triggers ZERR trap" {
   expected_message=$(errmsg-non-existent-file ${callees[-1]}:source; unexpected-error-message 127);
   check-error source $NON_EXISTENT_FILE;
 
@@ -73,7 +73,7 @@ function errmsg-bad-flag() {
   check-error read-file $NON_EXISTENT_FILE;
 }
 
-@test "error: ZERR trap is triggered in all non-condition contexts" {
+@test "ZERR trap is triggered in all non-condition contexts" {
   for context in $CONTEXTS; do
     ! context-is-condition $context || continue;
     callees=(f1 f2 $context f3);
@@ -93,7 +93,7 @@ function errmsg-bad-flag() {
   done;
 }
 
-@test "error: ZERR trap is triggered in all non-condition context combinations" {
+@test "ZERR trap is triggered in all non-condition context combinations" {
   expected_message=$(unexpected-error-message 1);
   for context1 in $CONTEXTS; do
     ! context-is-condition $context1 || continue;
@@ -105,7 +105,7 @@ function errmsg-bad-flag() {
   done;
 }
 
-@test "error: ZERR trap isn't triggered in any condition contexts" {
+@test "ZERR trap isn't triggered in any condition contexts" {
   expected_abort=false;
   for context in $CONTEXTS; do
     context-is-condition $context || continue;
@@ -114,7 +114,7 @@ function errmsg-bad-flag() {
   done;
 }
 
-@test "error: ZERR trap isn't triggered in any condition context combinations" {
+@test "ZERR trap isn't triggered in any condition context combinations" {
   expected_abort=false;
   for context1 in $CONTEXTS; do
     for context2 in $CONTEXTS; do
@@ -125,14 +125,14 @@ function errmsg-bad-flag() {
   done;
 }
 
-@test "error: Builtin exit doesn't tigger ZERR trap" {
+@test "Builtin exit doesn't tigger ZERR trap" {
   expected_abort=false;
   expected_status=42;
   expected_leave_trace="";
   check-error exit 42;
 }
 
-@test "error: Builtin exit triggers ZERR trap in parent shells that listen to subshell exit status" {
+@test "Builtin exit triggers ZERR trap in parent shells that listen to subshell exit status" {
   for context in $CONTEXTS; do
     unset ${!expected_*};
     callees=(f1 f2 $context f3);
@@ -154,7 +154,7 @@ function errmsg-bad-flag() {
   done;
 }
 
-@test "error: Expansion errors trigger shell exit but not ZERR trap" {
+@test "Expansion errors trigger shell exit but not ZERR trap" {
   # TODO: Fix zsh to trigger the ZERR trap on expansion errors.
   expected_abort=false;
   expected_status=1;
@@ -173,7 +173,7 @@ function errmsg-bad-flag() {
   check-error bad-flag;
 }
 
-@test "error: Expansion errors in eval trigger eval exit but not shell exit nor ZERR trap" {
+@test "Expansion errors in eval trigger eval exit but not shell exit nor ZERR trap" {
   # TODO: Fix zsh to exit the shell rather than just the eval when an
   # expansion error occurs inside an eval.
   expected_abort=false;
@@ -203,7 +203,7 @@ function errmsg-bad-flag() {
   check-error bad-flag;
 }
 
-@test "error: Undefined variable in printf tiggers ZERR trap" {
+@test "Undefined variable in printf tiggers ZERR trap" {
   expected_message="$(errmsg-undefined-variable; unexpected-error-message 1)";
   check-error printf -v ignored %d $UNDEFINED_VARIABLE;
 }

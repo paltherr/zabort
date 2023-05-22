@@ -9,18 +9,18 @@ function check-usage() {
   check usage "$@";
 }
 
-@test "usage: Single argument" {
+@test "Single argument" {
   expected_message="f3: $TEST_MESSAGE";
   check-usage $TEST_MESSAGE;
 }
 
-@test "usage: Top-level call" {
+@test "Top-level call" {
   callees=();
   expected_message="$TEST_FILE: $TEST_MESSAGE";
   check-usage $TEST_MESSAGE;
 }
 
-@test "usage: Explicit misused command" {
+@test "Explicit misused command" {
   expected_stack_trace=$(stack-trace f1 f2 f3);
   expected_message="f3: $TEST_MESSAGE";
   check-usage -0 $TEST_MESSAGE;
@@ -44,7 +44,7 @@ function check-usage() {
   check-usage -42 $TEST_MESSAGE;
 }
 
-@test "usage: Miscellaneous argument combinations" {
+@test "Miscellaneous argument combinations" {
   expected_message="f3: message   with   spaces";
   check-usage "message   with   spaces";
 
@@ -56,7 +56,7 @@ function check-usage() {
   check-usage -2 -- "--message starting with a dash";
 }
 
-@test "usage: Invalid options" {
+@test "Invalid options" {
   expected_stack_trace=$(stack-trace f1 f2 f3 usage);
 
   expected_message="usage: Unrecognised option: \"-x\"";
@@ -66,7 +66,7 @@ function check-usage() {
   check-usage --invalid-option $TEST_MESSAGE;
 }
 
-@test "usage: Invalid messages" {
+@test "Invalid messages" {
   expected_stack_trace=$(stack-trace f1 f2 f3 usage);
 
   expected_message="usage: An error message is required.";

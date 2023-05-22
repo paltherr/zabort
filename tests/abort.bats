@@ -10,11 +10,11 @@ function check-abort() {
   check abort "$@";
 }
 
-@test "abort: No arguments" {
+@test "No arguments" {
   check-abort;
 }
 
-@test "abort: Alternate contexts" {
+@test "Alternate contexts" {
   for context in $CONTEXTS; do
     callees=($context);
     check-abort;
@@ -23,7 +23,7 @@ function check-abort() {
   done;
 }
 
-@test "abort: Messages" {
+@test "Messages" {
   expected_message="single-word-message";
   check-abort "single-word-message";
 
@@ -53,7 +53,7 @@ function check-abort() {
   check-abort -- -a --message --with --leading --dashes;
 }
 
-@test "abort: Skip stack elements" {
+@test "Skip stack elements" {
   expected_stack_trace=$(stack-trace f1 f2 f3 abort);
   check-abort -0;
 
@@ -76,13 +76,13 @@ function check-abort() {
   check-abort -42;
 }
 
-@test "abort: No stack trace" {
+@test "No stack trace" {
   expected_stack_trace="";
   check-abort -q;
   check-abort --quiet;
 }
 
-@test "abort: Invalid options" {
+@test "Invalid options" {
   expected_message="abort: Unrecognised option: \"-x\"";
   check-abort -x;
   check-abort -x "ignored message";
@@ -92,7 +92,7 @@ function check-abort() {
   check-abort --invalid "ignored message";
 }
 
-@test "abort: Explicit signal" {
+@test "Explicit signal" {
   expected_status=1;
   prelude='ZABORT_SIGNAL=HUP' check-abort;
   prelude='ZABORT_SIGNAL=HuP' check-abort;
@@ -108,7 +108,7 @@ function check-abort() {
   prelude='ZABORT_SIGNAL=9' check-abort;
 }
 
-@test "abort: Invalid signal" {
+@test "Invalid signal" {
   message_pattern=$'abort: ZABORT_SIGNAL contains unrecognized signal: "%s"\n'$DEFAULT_MESSAGE;
   local signal;
   for signal in FOO EXIT ERR ZERR DEBUG 0 32 -1 1234567890987654321; do
@@ -124,7 +124,7 @@ function check-abort() {
   prelude='ZABORT_SIGNAL=(HUP HUP)' check-abort;
 }
 
-@test "abort: Stop PID" {
+@test "Stop PID" {
   prelude='zmodload zsh/system';
   f4_prelude='ZABORT_STOP_PID=$sysparams[pid]';
   for context in $CONTEXTS; do
@@ -148,7 +148,7 @@ function check-abort() {
   done;
 }
 
-@test "abort: Redundant or invalid stop PID" {
+@test "Redundant or invalid stop PID" {
   callees=(f1 ctx_paren f2 ctx_paren f3 ctx_paren f4 ctx_paren f5 ctx_paren f6);
   f3_prelude='ZABORT_STOP_PID=$$' check-abort;
   f3_prelude='ZABORT_STOP_PID=1' check-abort;
