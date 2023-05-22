@@ -3,7 +3,7 @@
 
 # NAME
 #
-# abort – Terminates the shell script.
+# abort – abort the shell script
 
 # SYNOPSIS
 #
@@ -11,17 +11,30 @@
 
 # DESCRIPTION
 #
-# Terminates the current shell script after printing the provided
-# message on stderr followed by a stack trace.
+# The "abort" function prints the provided message and the current
+# stack trace on stderr and then aborts the shell script.
 #
-# The shell script is terminated by sending a signal to the shell
-# process of the current (sub)shell and all its parent shells up to
-# the shell whose PID is $$. Signals are sent to parents first. The
-# default signal is HUP. It can be overridden with the ZABORT_SIGNAL
-# environment variable.
+# The default abortion mechanism terminates the whole shell script. A
+# HUP signal is sent to the current shell process and all its parent
+# shell processes up to the original shell process with PID $$. In the
+# absence of custom traps, a HUP signal causes the shell process that
+# receives it to exit with status 1. Thus, unlike the "exit" builtin,
+# which only exits the (sub)shell from which it's called, the "abort"
+# function terminates the whole shell script even when it's called
+# from a subshell.
 #
-# The message parts are printed with zsh's "echo" unless the option
-# "--printf" was provided, in which case zsh's "printf" is used. The
+# The signal to send to the shell processes can be specified with the
+# "ZABORT_SIGNAL" environment variable. Custom traps can be used to
+# specify how to behave when a signal is received. Custom traps can be
+# set either with the "trap" builtin or with "TRAP" functions.
+#
+# The set of shell processes to which a signal should be sent can be
+# restricted with the "ZABORT_STOP_PID" environment variable. Thus,
+# instead of terminating the whole shell script, it's possible to
+# terminate only a subshell.
+#
+# The message is printed by default with the "echo" builtin and with
+# the "printf" builtin if the "--printf" option was provided. The
 # message parts are passed as is to "echo" or "printf". They may
 # include options, in which case it may be necessary to use the "--"
 # option to distinguish them from options to the "abort" function.
@@ -45,28 +58,34 @@
 # -E
 # -e
 #
-#   Pass the option -E or -e to zsh's "echo" when printing the message
-#   parts.
+#   Pass the "-E" or "-e" option to the "echo" builtin when printing
+#   the message.
 #
 # -f
 # --printf
 #
-#   Print the message parts with zsh's "printf". Any -E or -e options
-#   are ignored.
+#   Print the message with the "printf" builtin. Any "-E" or "-e"
+#   options are ignored.
 #
 # --
 #
-#   Signal the end of options. Any arguments after "--" are treated as
-#   message parts.
+#   Signal the end of options. Arguments following a "--" option are
+#   treated as message parts.
 
 # ENVIRONMENT
 #
 # ZABORT_SIGNAL
 #
-#   The signal to send to the shell process(es) to terminate. The
-#   signal can be specified by name or number. Note that some signals
-#   may be ignored by the shell processes or may not terminate them.
-#   Defaults to HUP.
+#   The signal to send to the shell processes. It can be specified by
+#   name or number. Defaults to HUP.
+#
+# ZABORT_STOP_PID
+#
+#   The PID of the shell process at which the search for parent shell
+#   processes to which to send a signal should stop. A signal is sent
+#   to current shell process and all its parent shell processes up to
+#   the shell process with PID $$ or $ZABORT_STOP_PID, whichever comes
+#   first.
 
 function abort() {
   local skip_count=0;
@@ -135,22 +154,23 @@ function abort() {
     done;
   fi;
 
-  # Terminate the current shell and any parent shells.
+  # Send a signal to the current shell process and its parent shell
+  # processes.
   #
-  # Sending the HUP signal to a shell immedialely kills it without
-  # printing any further messages. Any commands following the kill
-  # command are NOT executed. However, local function EXIT traps are
-  # run but not global EXIT traps. Sending the ABRT or TERM signals
-  # have the same effect but for them zsh prints an error message. The
-  # shell exits with the status 1 for signal HUP and with the statuses
-  # 134 and 143 for the signals ABRT and TERM.
+  # Sending the HUP signal to a shell process terminates it without
+  # printing any message. Any commands following the kill command are
+  # NOT executed. However, local function "EXIT" traps are run but not
+  # global "EXIT" traps. Sending the ABRT or TERM signals have the
+  # same effect but for them zsh prints an error message. The shell
+  # exits with the status 1 for the HUP signal and with the statuses
+  # 134 and 143 for the ABRT and TERM signals.
 
   zmodload zsh/system;
+  # The check for PID 1 is needed in case a parent shell was orphaned
+  # and reparented by the init process.
+  local -a stop_pids=($$ 1 ${ZABORT_STOP_PID:-}) pids=();
   local -i pid=$sysparams[pid];
-  local -a pids=();
-  # The check for PID 1 is needed in case a parent shell was killed
-  # and replaced by process 1.
-  for ((; pid != $ && pid != 1; pid=$(ps -o ppid= $pid))) do pids+=$pid; done;
+  for ((; !stop_pids[(I)$pid]; pid=$(ps -o ppid= $pid))) do pids+=$pid; done;
   ((pid == 1)) || pids+=$pid;
   kill -$signal $pids;
 }

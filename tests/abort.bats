@@ -105,6 +105,39 @@ function check-abort() {
   prelude='ZABORT_SIGNAL=(HUP HUP)' check-abort;
 }
 
+@test "abort: Stop PID" {
+  prelude='zmodload zsh/system';
+  f4_prelude='ZABORT_STOP_PID=$sysparams[pid]';
+  for context in $CONTEXTS; do
+    context-starts-subshell $context || continue;
+    unset ${!expected_*};
+    callees=(f1 ctx_paren f2 ctx_paren f3 $context f4 ctx_paren f5 ctx_paren f6);
+    if context-ignores-exit-status $context; then
+      # The non-zero exit status of the stopped abort is ignored and
+      # the calling functions execute normally to their end.
+      expected_status=0;
+      expected_leave_trace=$(leave-trace f1 ctx_paren f2 ctx_paren f3 $context);
+    else
+      # The non-zero exit status of the stopped abort triggers the
+      # ZERR trap.
+      expected_status=1;
+      expected_leave_trace=$( \
+          echo "Command unexpectedly exited with the non-zero status 1.";
+          stack-trace f1 ctx_paren f2 ctx_paren f3 $context TRAPZERR);
+    fi;
+    check-abort;
+  done;
+}
+
+@test "abort: Redundant or invalid stop PID" {
+  callees=(f1 ctx_paren f2 ctx_paren f3 ctx_paren f4 ctx_paren f5 ctx_paren f6);
+  f3_prelude='ZABORT_STOP_PID=$$' check-abort;
+  f3_prelude='ZABORT_STOP_PID=1' check-abort;
+  f3_prelude='ZABORT_STOP_PID=42' check-abort;
+  f3_prelude='ZABORT_STOP_PID=-42' check-abort;
+  f3_prelude='ZABORT_STOP_PID=foobar' check-abort;
+}
+
 @test "abort: Invalid options" {
   expected_message="abort: Unrecognised option: \"-x\"";
   check-abort -x;

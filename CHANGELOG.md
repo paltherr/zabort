@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- Support for the ZABORT_STOP_PID environment variable.
+
 - Description of release process in Releasing.md.
 
 ### Changed

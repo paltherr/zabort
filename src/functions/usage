@@ -3,7 +3,7 @@
 
 # NAME
 #
-# usage – Prints a usage error and terminates the shell script.
+# usage – print a usage error and abort the shell script
 
 # SYNOPSIS
 #
@@ -11,29 +11,38 @@
 
 # DESCRIPTION
 #
-# Prints the provided error message on stderr preceded by the misused
-# command and followed by the stack trace up to the misused command
-# and terminates the current shell script. Unless a different command
-# was specified with the "-<N>" option, the misused command is the
-# function that called "usage". If "usage" was called directly from
-# the toplevel, the misused command is the current script.
+# The "usage" function is a frontend to the "abort" function intended
+# to signal an error in the usage of a command. It prints a misusage
+# message on stderr and then aborts the shell script.
 #
-# The shell script is terminated by sending a "HUP" signal to the
-# shell process(es). See function "abort" for more details.
+# The misusage message consists of the provided error message prefixed
+# by the misused command and followed by the current stack trace. The
+# the stack trace stops at the misused command; it does not include
+# the calls to "usage" and/or "abort". Instead, the last listed call
+# is the call to the misused command.
+#
+# Unless a different command was specified with the "-<N>" option, the
+# misused command is the function that called "usage". If "usage" was
+# called directly from the toplevel, the misused command is the shell
+# script itself.
+#
+# For details on how the shell script is aborted, see the "abort"
+# function.
 
 # OPTIONS
 #
 # -<N>
 #
-#   Specify which command is the misused command. The value 0 stands
-#   for the function that called "usage"(the default), the value 1 for
-#   the function that called that function, ..., and call stack size
-#   for the current script.
+#   Use the specified command as the misused command. The value "0"
+#   stands for the function that called "usage", the value "1" for the
+#   function that called that function, and so on. A value equal to
+#   the call stack size at the point of the call to "usage" stands for
+#   the shell script itself.
 #
 # --
 #
-#   Signal the end of options. Any arguments after "--" are parsed as
-#   error messages.
+#   Signal the end of options. Arguments following a "--" option are
+#   treated as error messages.
 
 function usage() {
   local misused_command_index=0;

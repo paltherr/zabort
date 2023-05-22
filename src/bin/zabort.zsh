@@ -9,15 +9,15 @@ autoload -Uz usage;
 ################################################################################
 # Shell configuration for (more) reliable error handling
 
-# Terminate the current shell script if a command returns a non-zero
-# exit status. This is strictly stronger than the ERR_EXIT option,
-# which exits a (sub)shell if a command returns with a non-zero exit
-# status. With the ERR_EXIT option, a parent shell won't be terminated
-# if the subshell was started in a context where its exit status is
-# ignored. The trap defined here solves this by explicitly terminating
-# all parent shells.
+# Abort the current shell script if a command returns with a non-zero
+# exit status. This is more reliable than the "ERR_EXIT" option, which
+# exits a (sub)shell if a command returns with a non-zero exit status.
+# With the "ERR_EXIT" option, some parent (sub)shells won't exit if at
+# least one subshell was started in a context where its exit status is
+# ignored.
 
 TRAPZERR() {
+  # Use -1 to print a stack trace with "TRAPZERR" as the last call.
   abort -1 "Command unexpectedly exited with the non-zero status $?.";
 }
 

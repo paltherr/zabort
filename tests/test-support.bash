@@ -20,7 +20,7 @@ function setup_file() {
   export TRACE_script=$($TEST_FILE '^echo $funcfiletrace[1]');
   export TRACE_prelude_function=$($TEST_FILE '^() { echo $funcsourcetrace[1]; }');
   local f;
-  for f in f{1..3} $CONTEXTS; do
+  for f in f{1..6} $CONTEXTS; do
     export TRACE_$f=$($TEST_FILE '^exec 3>&1' $f '^echo $funcfiletrace[1] 1>&3');
   done;
 }

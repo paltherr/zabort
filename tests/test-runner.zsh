@@ -63,6 +63,9 @@ alias process-args='while [[ ${1:-} = ^* ]]; do eval ${1#^}; shift 1; done; "$@"
 function f1() { e; process-args; l; }
 function f2() { e; process-args; l; }
 function f3() { e; process-args; l; }
+function f4() { e; process-args; l; }
+function f5() { e; process-args; l; }
+function f6() { e; process-args; l; }
 
 # The "ctx_*" functions process their arguments in diverse contexts.
 # The "@" annotations, which must be in a comment on the same line as
