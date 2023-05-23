@@ -22,9 +22,7 @@
 # is the call to the misused command.
 #
 # Unless a different command was specified with the "-<N>" option, the
-# misused command is the function that called "usage". If "usage" was
-# called directly from the toplevel, the misused command is the shell
-# script itself.
+# misused command is the function or script that called "usage".
 #
 # For details on how the shell script is aborted, see the "abort"
 # function.
@@ -33,11 +31,9 @@
 #
 # -<N>
 #
-#   Use the specified command as the misused command. The value "0"
-#   stands for the function that called "usage", the value "1" for the
-#   function that called that function, and so on. A value equal to
-#   the call stack size at the point of the call to "usage" stands for
-#   the shell script itself.
+#   Use the specified command as the misused command. Value 0 stands
+#   for the function or script that called "usage", value 1 for the
+#   function or script that called that function or script, and so on.
 #
 # --
 #
