@@ -104,7 +104,7 @@ function abort() {
     if _zabort-is-signal "$ZABORT_SIGNAL"; then
       signal=$ZABORT_SIGNAL;
     else
-      echo "$0: ZABORT_SIGNAL contains unrecognized signal: ${(qqq)ZABORT_SIGNAL}" 1>&2;
+      echo "$0: Unrecognized signal in ZABORT_SIGNAL: ${(qqq)ZABORT_SIGNAL}" 1>&2;
     fi;
   fi;
 
@@ -116,7 +116,7 @@ function abort() {
         local skip_max=$#funcstack;
         local valid_range="<0-$skip_max>";
         [[ ${1#-} = ${~valid_range} ]] ||
-          usage "Valid skip count range from 0 to $skip_max, found: ${(qqq)1#-}.";
+          usage "Skip count out of range 0..$skip_max: ${(qqq)1#-}";
         skip_count=${1#-}; shift 1;
         ;;
       -q | --quiet )
@@ -133,7 +133,7 @@ function abort() {
         message_parts=("$@"); shift $#;
         ;;
       -* )
-        usage "Unrecognised option: ${(qqq)1}";
+        usage "Unrecognized option: ${(qqq)1}";
         ;;
       * )
         message_parts=("$@"); shift $#;

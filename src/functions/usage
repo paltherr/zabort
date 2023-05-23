@@ -55,14 +55,14 @@ function usage() {
         local index_max=$(($#funcstack - 1));
         local valid_range="<0-$index_max>";
         [[ ${1#-} = ${~valid_range} ]] ||
-          usage "Valid command indexes range from 0 to $index_max, found ${(qqq)1#-}.";
+          usage "Command index out of range 0..$index_max: ${(qqq)1#-}";
         misused_command_index=${1#-}; shift 1;
         ;;
       -- )
         shift 1; break;
         ;;
       -* )
-        usage "Unrecognised option: ${(qqq)1}";
+        usage "Unrecognized option: ${(qqq)1}";
         ;;
       * )
         break;
@@ -71,9 +71,9 @@ function usage() {
   done;
 
   # Get the error message.
-  [[ $# -gt 0 ]] || usage "An error message is required.";
-  [[ $# -eq 1 ]] || usage "Multiple error messages aren't allowed, found: $(echo ${(qqq)@}).";
-  [[ $1 = *[![:space:]]* ]] || usage "The error message may not be empty.";
+  [[ $# -lt 2 ]] || usage "A single error message is allowed, found: ${(j: :)${(qqq)@}}";
+  [[ $# -eq 1 && -n $1 ]] || usage "A non-empty error message is required.";
+  [[ $1 =~ [^[:space:]] ]] || usage "The error message cannot be whitespace only, found: ${(qqq)1}";
   local error_message=$1; shift 1;
 
   local skip_count=$((2 + $misused_command_index));

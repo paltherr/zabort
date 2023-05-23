@@ -38,9 +38,9 @@ function check-usage() {
   check-usage -3 $TEST_MESSAGE;
 
   expected_stack_trace=$(stack-trace f1 f2 f3 usage);
-  expected_message="usage: Valid command indexes range from 0 to 3, found \"4\".";
+  expected_message="usage: Command index out of range 0..3: \"4\"";
   check-usage -4 $TEST_MESSAGE;
-  expected_message="usage: Valid command indexes range from 0 to 3, found \"42\".";
+  expected_message="usage: Command index out of range 0..3: \"42\"";
   check-usage -42 $TEST_MESSAGE;
 }
 
@@ -59,26 +59,30 @@ function check-usage() {
 @test "Invalid options" {
   expected_stack_trace=$(stack-trace f1 f2 f3 usage);
 
-  expected_message="usage: Unrecognised option: \"-x\"";
+  expected_message="usage: Unrecognized option: \"-x\"";
   check-usage -x $TEST_MESSAGE;
 
-  expected_message="usage: Unrecognised option: \"--invalid-option\"";
+  expected_message="usage: Unrecognized option: \"--invalid-option\"";
   check-usage --invalid-option $TEST_MESSAGE;
 }
 
 @test "Invalid messages" {
   expected_stack_trace=$(stack-trace f1 f2 f3 usage);
 
-  expected_message="usage: An error message is required.";
+  expected_message="usage: A non-empty error message is required.";
   check-usage;
+  check-usage "";
 
-  expected_message="usage: Multiple error messages aren't allowed, found: \"foo\" \"bar\".";
+  expected_message="usage: A single error message is allowed, found: \"foo\" \"bar\"";
   check-usage foo bar;
-  expected_message="usage: Multiple error messages aren't allowed, found: \"\" \"\".";
+  expected_message="usage: A single error message is allowed, found: \"foo\" \"foo bar\" \"bar\"";
+  check-usage foo "foo bar" bar;
+  expected_message="usage: A single error message is allowed, found: \"\" \"\"";
   check-usage "" "";
 
-  expected_message="usage: The error message may not be empty.";
-  check-usage "";
+  expected_message="usage: The error message cannot be whitespace only, found: \" \"";
+  check-usage " ";
+  expected_message="usage: The error message cannot be whitespace only, found: \" "$'\t\n'" \"";
   check-usage $' \t\n ';
 }
 

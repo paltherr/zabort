@@ -70,9 +70,9 @@ function check-abort() {
   check-abort -4;
 
   expected_stack_trace=$(stack-trace f1 f2 f3 abort);
-  expected_message="abort: Valid skip count range from 0 to 4, found: \"5\".";
+  expected_message="abort: Skip count out of range 0..4: \"5\"";
   check-abort -5;
-  expected_message="abort: Valid skip count range from 0 to 4, found: \"42\".";
+  expected_message="abort: Skip count out of range 0..4: \"42\"";
   check-abort -42;
 }
 
@@ -83,13 +83,19 @@ function check-abort() {
 }
 
 @test "Invalid options" {
-  expected_message="abort: Unrecognised option: \"-x\"";
+  expected_message="abort: Unrecognized option: \"-x\"";
   check-abort -x;
   check-abort -x "ignored message";
 
-  expected_message="abort: Unrecognised option: \"--invalid\"";
+  expected_message="abort: Unrecognized option: \"--invalid\"";
   check-abort --invalid;
   check-abort --invalid "ignored message";
+
+  expected_message="abort: Unrecognized option: \"-1X\"";
+  check-abort -1X;
+
+  expected_message="abort: Unrecognized option: \"--1\"";
+  check-abort --1;
 }
 
 @test "Explicit signal" {
@@ -109,7 +115,7 @@ function check-abort() {
 }
 
 @test "Invalid signal" {
-  message_pattern=$'abort: ZABORT_SIGNAL contains unrecognized signal: "%s"\n'$DEFAULT_MESSAGE;
+  message_pattern=$'abort: Unrecognized signal in ZABORT_SIGNAL: "%s"\n'$DEFAULT_MESSAGE;
   local signal;
   for signal in FOO EXIT ERR ZERR DEBUG 0 32 -1 1234567890987654321; do
     printf -v expected_message "$message_pattern" "$signal";
